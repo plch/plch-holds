@@ -1,0 +1,9 @@
+configparser==3.5.0
+DateTime==4.2
+dnspython==1.15.0
+email-validator==1.0.3
+idna==2.6
+psycopg2-binary==2.7.4
+pytz==2018.4
+XlsxWriter==1.0.5
+zope.interface==4.5.0
