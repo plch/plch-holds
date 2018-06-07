@@ -179,11 +179,10 @@ class App:
 		
 		row_counter=1
 		for row in self.gen_sierra_data(self.vol_output_all_sql):
-			#~ print("keys: ")
-			#~ for key in row.keys():
-				#~ print(key, end=", ")
-			print(row_counter, end=": ")
-			print(row)			
+			
+			#~ debug
+			#~ print(row_counter, end=": ")
+			#~ print(row)			
 			
 			self.ws_vol_level_all.write_row(row_counter, 0,
 				(row['bib_num'], row['vol_num'], row['vol'], row['count_active_holds'],
@@ -331,17 +330,28 @@ class App:
 		self.ws_vol_level.set_column('B:B', 10)
 		self.ws_vol_level_all.set_column('B:B', 10)
 		
-		self.ws_vol_level.set_column('C:C', 12)
-		self.ws_vol_level_all.set_column('C:C', 12)
+		self.ws_vol_level.set_column('C:C', 14)
+		self.ws_vol_level_all.set_column('C:C', 14)
 		
-		self.ws_vol_level.set_column('D:D', 14)
-		self.ws_vol_level_all.set_column('D:D', 14)
+		self.ws_vol_level.set_column('D:D', 12)
+		self.ws_vol_level_all.set_column('D:D', 12)
 				
-		self.ws_vol_level.set_column('E:E', 14)
-		self.ws_vol_level_all.set_column('E:E', 14)
+		self.ws_vol_level.set_column('E:E', 12)
+		self.ws_vol_level_all.set_column('E:E', 12)
+		
+		self.ws_vol_level.set_column('F:F', 14)
+		self.ws_vol_level_all.set_column('F:F', 14)
+		
+		self.ws_vol_level.set_column('G:G', 14)
+		self.ws_vol_level_all.set_column('G:G', 14)
+		
+		self.ws_vol_level.set_column('H:H', 10)
+		self.ws_vol_level_all.set_column('H:H', 10)
 		
 		self.ws_bib_level.freeze_panes(1, 0)
 		self.ws_vol_level.freeze_panes(1, 0)
+		self.ws_bib_level_all.freeze_panes(1, 0)
+		self.ws_vol_level_all.freeze_panes(1, 0)
 		
 
 
