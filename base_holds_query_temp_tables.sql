@@ -1,11 +1,11 @@
--- 
--- These are a series of queries that will create a temporary table of all 
+--
+-- These are a series of queries that will create a temporary table of all
 -- PLCH holds that meet the shared baseline criteria for holds reports being
--- produced for PLCH staff to examine as possibly problematic 
--- 
+-- produced for PLCH staff to examine as possibly problematic
+--
 
 
--- Grab all of the bib level and volume level holds that exist in the system right now, 
+-- Grab all of the bib level and volume level holds that exist in the system right now,
 -- and link them to a title (bib record):
 -- Where holds are not INN-Reach, not ILL and not frozen
 DROP TABLE IF EXISTS temp_plch_holds;
@@ -25,13 +25,13 @@ CASE
 -- 	WHEN r.record_type_code = 'i' THEN (
 -- 		SELECT
 -- 		l.bib_record_id
--- 
+--
 -- 		FROM
 -- 		sierra_view.bib_record_item_record_link as l
--- 
+--
 -- 		WHERE
 -- 		l.item_record_id = h.record_id
--- 
+--
 -- 		LIMIT 1
 -- 	)
 
@@ -132,12 +132,12 @@ br.bcode2,
 	WHERE
 	t1.record_id = t.record_id
 	AND t1.patron_ptype_code IN (0, 1, 2, 3, 5, 6, 10, 11, 12, 15, 22, 30, 31, 32, 40, 41, 196)
-	
+
 ) as count_active_holds,
 -- count the items attached to the volume record
 (
 	SELECT
-	COUNT(*)
+	COUNT(i.record_id)
 
 	FROM
 	sierra_view.volume_record_item_record_link as l
@@ -152,12 +152,17 @@ br.bcode2,
 	ON
 	  r.id = l.item_record_id
 
+	LEFT OUTER JOIN
+	sierra_view.checkout as c
+	ON
+	  c.item_record_id = l.item_record_id
+
 	WHERE
 	l.volume_record_id = t.record_id
 	AND i.is_suppressed IS false
-	AND ( 
-		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+') 
-		OR (i.item_status_code = 't' AND age(r.record_last_updated_gmt) < INTERVAL '60 days'  ) 
+	AND (
+		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
+		AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
 	)
 ) as count_active_copies,
 
@@ -186,7 +191,7 @@ br.bcode2,
 
 	WHERE
 	l.bib_record_id =  t.bib_record_id
-	AND r.id IS NULL -- order is not received 
+	AND r.id IS NULL -- order is not received
 	AND c.location_code != 'multi'
 
 	GROUP BY
@@ -237,7 +242,7 @@ br.bcode2,
 	WHERE
 	t1.record_id = t.record_id
 	AND t1.patron_ptype_code IN (0, 1, 2, 3, 5, 6, 10, 11, 12, 15, 22, 30, 31, 32, 40, 41, 196)
-	
+
 ) as count_active_holds,
 -- count the items attached to the bib record
 (
@@ -257,12 +262,17 @@ br.bcode2,
 	ON
 	  r.id = l.item_record_id
 
+	LEFT OUTER JOIN
+	sierra_view.checkout as c
+	ON
+	  c.item_record_id = l.item_record_id
+
 	WHERE
 	l.bib_record_id = t.record_id
 	AND i.is_suppressed IS false
-	AND ( 
-		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+') 
-		OR (i.item_status_code = 't' AND age(r.record_last_updated_gmt) < INTERVAL '60 days'  ) 
+	AND (
+		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
+		AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
 	)
 ) as count_active_copies,
 
@@ -289,9 +299,21 @@ br.bcode2,
 	ON
 	  r.order_record_id = l.order_record_id
 
+
+
+
+
+
+
+
+
+
+
+
+
 	WHERE
 	l.bib_record_id =  t.bib_record_id
-	AND r.id IS NULL -- order is not received 
+	AND r.id IS NULL -- order is not received
 	AND c.location_code != 'multi'
 
 	GROUP BY
@@ -332,10 +354,10 @@ br.bcode2
 -- *
 -- FROM
 -- temp_bib_level_holds_counts as t
--- 
+--
 -- WHERE
 -- t.bib_record_id = reckey2id('b2812314a')
--- 
+--
 -- LIMIT 100
 
 ----------
@@ -345,14 +367,14 @@ br.bcode2
 -- sierra_view.record_metadata as r
 -- ON
 --   r.id = t.bib_record_id
--- 
+--
 -- -- get the volume number
 -- LEFT OUTER JOIN
 -- sierra_view.varfield as v
 -- ON
 --   v.record_id = t.record_id -- t.record_id should be the volume record id
 --   AND v.varfield_type_code = 'v'
--- 
+--
 -- WHERE
 -- t.record_type_code = 'j'
 
@@ -360,15 +382,15 @@ br.bcode2
 
 ----------
 
--- SELECT 
--- 
+-- SELECT
+--
 -- t.id,
 -- t.is_frozen,
 -- t.placed_gmt,
 -- t.delay_days,
 -- ( INTERVAL '1 day' * t.delay_days ) as interval_delay,
 -- t.placed_gmt::timestamp + ( INTERVAL '1 day' * t.delay_days ) as not_wanted_before,
--- 
+--
 -- -- make a determination if we want to count the hold
 -- CASE
 -- 	WHEN delay_days = 0 THEN false
@@ -376,13 +398,13 @@ br.bcode2
 -- 	ELSE false
 -- END as past_not_wanted_before,
 -- t.patron_record_id
--- 
--- FROM 
+--
+-- FROM
 -- temp_plch_holds as t
--- 
+--
 -- WHERE
 -- t.patron_record_id = 481038535591
--- 
+--
 -- limit 100
 
 ----------
@@ -391,10 +413,10 @@ br.bcode2
 -- SELECT
 -- t.record_type_code,
 -- count(t.record_type_code)
--- 
+--
 -- FROM
 -- temp_plch_holds as t
--- 
+--
 -- GROUP BY
 -- t.record_type_code;
 ---
@@ -409,34 +431,34 @@ br.bcode2
 -- (
 -- 	SELECT
 -- 	count(l.item_record_id)
--- 
+--
 -- 	FROM
 -- 	sierra_view.bib_record_item_record_link as l
--- 
+--
 -- 	WHERE
 -- 	l.bib_record_id = h.bib_record_id
 -- ) as count_items_linked,
 -- (
 -- 	SELECT
 -- 	count(l.volume_record_id)
--- 
+--
 -- 	FROM
 -- 	sierra_view.bib_record_volume_record_link as l
--- 
+--
 -- 	WHERE
 -- 	l.bib_record_id = h.bib_record_id
 -- ) as count_volumes_linked
--- 	
+--
 -- FROM
 -- temp_plch_holds as h
--- 
+--
 -- WHERE
 -- h.record_type_code = 'b'
 -- OR h.record_type_code = 'j'
--- 
+--
 -- GROUP BY
 -- h.bib_record_id,
 -- h.record_type_code
--- 
+--
 -- ORDER BY
 -- h.bib_record_id;
