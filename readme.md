@@ -19,7 +19,7 @@ Holds in all three of these categories are grouped into **titles** that the hold
 
 **1. System-wide holds**
 
-A listing of titles that have active copies to active holds ratios that exceed guidelines.
+A listing of titles that have active copies to active holds ratios that exceed guidelines. This is done for **bib-level** holds and **volume-level** holds separately. 
 
 * First, determine the **count of active copies** for the title:
 
