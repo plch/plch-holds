@@ -163,9 +163,20 @@ COALESCE (
 	l.volume_record_id = t.record_id
 	AND i.is_suppressed IS false
 	AND (
-		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
-		AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
+		(
+			i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
+			AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
+		)
+		OR (
+			i.item_status_code = 't'
+			AND COALESCE ( age(r.record_last_updated_gmt) < INTERVAL '60 days', true ) -- item in transit < 60 days old
+		)
 	)
+	-- item is in transit, but not long in transit
+	-- OR (
+-- 		i.item_status_code IN ('t')
+-- 		AND COALESCE ( age(r.record_last_updated_gmt) < INTERVAL '60 days', true ) -- item in transit < 60 days old
+-- 	)
 ), 0) as count_active_copies,
 
 -- count the number of copies on order ...
@@ -276,8 +287,14 @@ COALESCE((
 	l.bib_record_id = t.record_id
 	AND i.is_suppressed IS false
 	AND (
-		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
-		AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
+		(
+			i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
+			AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
+		)
+		OR (
+			i.item_status_code = 't'
+			AND COALESCE ( age(r.record_last_updated_gmt) < INTERVAL '60 days', true ) -- item in transit < 60 days old
+		)
 	)
 ), 0) as count_active_copies,
 

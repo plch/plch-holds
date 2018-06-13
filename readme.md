@@ -19,7 +19,7 @@ Holds in all three of these categories are grouped into **titles** that the hold
 
 **1. System-wide holds**
 
-A listing of titles that have active copies to active holds ratios that exceed guidelines. This is done for **bib-level** holds and **volume-level** holds separately. 
+A listing of titles that have active copies to active holds ratios that exceed guidelines. This is done for **bib-level** holds and **volume-level** holds separately.
 
 * First, determine the **count of active copies** for the title:
 
@@ -27,7 +27,9 @@ A listing of titles that have active copies to active holds ratios that exceed g
 
   * ```item status code``` is one of the following:
 
-      ```‘-’, ,’t’, ‘!’, ‘b’, ‘p’, ‘(’, ‘@’, ‘)’, ‘_’, ‘=’, ‘+’```
+      * ```‘-’, ‘!’, ‘b’, ‘p’, ‘(’, ‘@’, ‘)’, ‘_’, ‘=’, ‘+’```
+
+      * ```'t'```  AND ```item_last_update``` has age less than 60 days (this identifies in transit items as being an active copy)
 
   * AND ```item due date (if it has one) has age less than 60 days```
 
