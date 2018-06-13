@@ -282,10 +282,12 @@ class App:
 		#~ create the cursor, and execute the sql to produce the temp 
 		#~ tables on the sierra-db from the external sql file 
 		#~ self.temp_tables_sql
+		sql_string = open(self.temp_tables_sql, mode='r', encoding='utf-8-sig').read()
+		
 		try:
 			with self.pgsql_conn as conn:
 				with conn.cursor() as cursor:
-					cursor.execute(open(self.temp_tables_sql, "r").read())
+					cursor.execute(sql_string)
 
 		except psycopg2.Error as e:
 			print("psycopg2 Error: {}".format(e))
