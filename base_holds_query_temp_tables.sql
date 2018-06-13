@@ -135,6 +135,8 @@ br.bcode2,
 
 ) as count_active_holds,
 -- count the items attached to the volume record
+-- note: this result can be null, so return 0 if that's the case
+COALESCE (
 (
 	SELECT
 	COUNT(i.record_id)
@@ -164,10 +166,12 @@ br.bcode2,
 		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
 		AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
 	)
-) as count_active_copies,
+), 0) as count_active_copies,
 
 -- count the number of copies on order ...
-(
+-- note: this result can be null, so return 0 if that's the case
+COALESCE (
+	(
 	SELECT
 	SUM(c.copies)
 
@@ -197,7 +201,7 @@ br.bcode2,
 	GROUP BY
 	l.bib_record_id
 
-) as count_copies_on_order
+), 0) as count_copies_on_order
 
 FROM
 temp_plch_holds as t
@@ -245,7 +249,8 @@ br.bcode2,
 
 ) as count_active_holds,
 -- count the items attached to the bib record
-(
+-- note: this result can be null, so return 0 if that's the case
+COALESCE((
 	SELECT
 	COUNT(*)
 
@@ -274,10 +279,11 @@ br.bcode2,
 		i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
 		AND COALESCE ( age(c.due_gmt) < INTERVAL '60 days', true ) -- item due date < 60 days old
 	)
-) as count_active_copies,
+), 0) as count_active_copies,
 
 -- count the number of copies on order ...
-(
+-- note: this result can be null, so return 0 if that's the case
+COALESCE((
 	SELECT
 	SUM(c.copies)
 
@@ -299,18 +305,6 @@ br.bcode2,
 	ON
 	  r.order_record_id = l.order_record_id
 
-
-
-
-
-
-
-
-
-
-
-
-
 	WHERE
 	l.bib_record_id =  t.bib_record_id
 	AND r.id IS NULL -- order is not received
@@ -319,7 +313,7 @@ br.bcode2,
 	GROUP BY
 	l.bib_record_id
 
-) as count_copies_on_order
+), 0) as count_copies_on_order
 
 FROM
 temp_plch_holds as t
