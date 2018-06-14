@@ -206,6 +206,7 @@ COALESCE (
 
 	WHERE
 	l.bib_record_id =  t.bib_record_id
+	AND o.order_status_code = 'o' -- this prevents orders that have been canceled from showing up and being counted
 	AND r.id IS NULL -- order is not received
 	AND c.location_code != 'multi'
 
@@ -324,6 +325,7 @@ COALESCE((
 
 	WHERE
 	l.bib_record_id =  t.bib_record_id
+	AND o.order_status_code = 'o' -- this prevents orders that have been canceled from showing up and being counted
 	AND r.id IS NULL -- order is not received
 	AND c.location_code != 'multi'
 

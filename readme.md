@@ -21,7 +21,7 @@ Holds in all three of these categories are grouped into **titles** that the hold
 
 A listing of titles that have active copies to active holds ratios that exceed guidelines. This is done for **bib-level** holds and **volume-level** holds separately.
 
-* First, determine the **count of active copies** for the title:
+1. Determine the **count of active copies** for the title:
 
   To determine if an item is to be considered as an active copy for the title, it must meet these conditions:
 
@@ -33,7 +33,7 @@ A listing of titles that have active copies to active holds ratios that exceed g
 
   * AND ```item due date (if it has one) has age less than 60 days```
 
-* Second, determine the **count of active holds** for the title.
+1. Determine the **count of active holds** for the title.
 
   To determine if a hold is an active hold it must meet these conditions:
 
@@ -45,10 +45,24 @@ A listing of titles that have active copies to active holds ratios that exceed g
 
    ```( 0, 1, 2, 5, 6, 10, 11, 12, 15, 22, 30, 31, 32, 40, 41, 196 )```
 
-* Lastly, determine if the title has active holds that exceed the holds ratio guidelines it must meet these **ratio ```active holds```:```active copies```** conditions:
+1. Determine the count of items ```on order```. To be counted as ```on order```, the order record is examined with the following criteria:
 
-  * MatType (bcode2) ```‘g’``` (dvd) has ratio  **greater than 9:1**
+  * Order record status code is ```'o'``` -- this prevents orders that have been canceled from being counted
 
-  * MatType (bcode2) ```‘i’, ‘j’, ‘q’``` (book on cd, music cd, playaway) has ratio ```active holds```:```active copies``` **greater than 6:1**
+  * Order is not received
 
-  * MatType (bcode2) ```not any of the above``` has ratio active holds:active copies ***greater than 3:1***
+  * Order location code is not 'multi' (the 'multi' location is not a real location, but rather a system-generated location used when there are multiple locations listed among the items on order.)
+
+1. Lastly, determine if the title has active holds that exceed the holds ratio guidelines it must meet these **ratio ```active holds```:```active copies```** (```active copies``` are copies considered active plus copies on order) conditions:
+
+  * MatType (bcode2) ```'g'``` (dvd) has ratio
+
+    **greater than 9:1**
+
+  * MatType (bcode2) ```'i', 'j', 'q'``` (book on cd, music cd, playaway) has ratio
+
+    **greater than 6:1**
+
+  * MatType (bcode2) ```not any of the above``` has ratio
+
+    **greater than 3:1**
