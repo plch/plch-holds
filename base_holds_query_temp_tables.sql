@@ -1,4 +1,4 @@
---
+﻿--
 -- These are a series of queries that will create a temporary table of all
 -- PLCH holds that meet the shared baseline criteria for holds reports being
 -- produced for PLCH staff to examine as possibly problematic
@@ -354,6 +354,170 @@ t.record_type_code,
 br.bcode2
 ;
 ---
+
+
+---
+-- Produce the temporary table that will be used to output System-Wide Holds bib
+DROP TABLE IF EXISTS temp_system_wide_holds_bibs;
+
+CREATE TEMP TABLE temp_system_wide_holds_bibs AS
+SELECT
+r.record_type_code || r.record_num || 'a' as bib_num,
+t.count_active_holds,
+t.count_active_copies,
+COALESCE(t.count_copies_on_order, 0) as count_copies_on_order,
+t.count_active_copies + COALESCE(t.count_copies_on_order, 0) as total_count_copies,
+t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float AS ratio_holds_to_copies,
+t.bcode2,
+t.bib_record_id,
+t.record_id
+
+FROM
+temp_bib_level_holds_counts as t
+
+JOIN
+sierra_view.record_metadata as r
+ON
+  r.id = t.bib_record_id
+
+WHERE
+t.count_active_copies > 0
+AND t.count_active_holds > 0
+AND (
+	(
+		t.bcode2 IN ('g')
+		AND ( t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
+		) > 9.0::float
+	)
+	OR (
+		t.bcode2 IN ('i', 'j', 'q')
+		AND ( 
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		) > 6.0::float
+	)
+	-- if bcode2 is none of the above, and it has a ratio above 3:1 show it.
+	OR (
+		t.bcode2 NOT IN ('g', 'i', 'j', 'q')
+		AND ( 
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		) > 3.0::float
+	)
+)
+
+-- ORDER BY
+-- t.bcode2,
+-- t.bib_record_id,
+-- t.record_id;
+;
+---
+
+
+---
+-- Remove from the temp_plch_holds table the bib records that we produced for our previous output
+DELETE FROM
+temp_plch_holds as t
+
+WHERE t.record_id IN (
+	SELECT
+	swt.record_id
+
+	FROM
+	temp_system_wide_holds_bibs as swt
+)
+;
+---
+
+
+-- Produce the temporary table that will be used to output System-Wide Holds volume 
+---
+DROP TABLE IF EXISTS temp_system_wide_holds_volumes;
+
+CREATE TEMP TABLE temp_system_wide_holds_volumes AS
+SELECT
+-- id2reckey(t.bib_record_id) || 'a' as bib_num,
+-- id2reckey(t.record_id) || 'a' as vol_num,
+br.record_type_code || br.record_num || 'a' as bib_num,
+vr.record_type_code || vr.record_num || 'a' as vol_num,
+
+v.field_content as vol,
+t.count_active_holds,
+t.count_active_copies,
+COALESCE(t.count_copies_on_order, 0) as count_copies_on_order,
+t.count_active_copies + COALESCE(t.count_copies_on_order, 0) as total_count_copies,
+t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float AS ratio_holds_to_copies,
+t.bcode2,
+t.bib_record_id,
+t.record_id
+
+FROM
+temp_volume_level_holds_counts as t
+
+JOIN
+sierra_view.record_metadata as br
+ON
+  br.id = t.bib_record_id
+
+JOIN
+sierra_view.record_metadata as vr
+ON
+  vr.id = t.record_id
+
+LEFT OUTER JOIN
+sierra_view.varfield as v
+ON
+  v.record_id = t.record_id -- t.record_id should be the volume record id
+  AND v.varfield_type_code = 'v'
+
+WHERE
+t.count_active_copies > 0
+AND t.count_active_holds > 0
+AND (
+	(
+		t.bcode2 IN ('g')
+		AND ( t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
+		) > 9.0::float
+	)
+	OR (
+		t.bcode2 IN ('i', 'j', 'q')
+		AND ( 
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		) > 6.0::float
+	)
+	-- if bcode2 is none of the above, and it has a ratio above 3:1 show it.
+	OR (
+		t.bcode2 NOT IN ('g', 'i', 'j', 'q')
+		AND ( 
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		) > 3.0::float
+	)
+)
+
+-- ORDER BY
+-- t.bib_record_id,
+-- t.record_id;
+
+;
+---
+
+
+---
+-- Remove from the temp_plch_holds table the records that we produced for our previous output
+DELETE FROM
+temp_plch_holds as t
+
+WHERE t.record_id IN (
+	SELECT
+	swt.record_id
+
+	FROM
+	temp_system_wide_holds_volumes as swt
+)
+;
+---
+
+
+
+
 
 
 
