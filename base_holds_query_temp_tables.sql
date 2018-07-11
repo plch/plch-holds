@@ -363,6 +363,40 @@ DROP TABLE IF EXISTS temp_system_wide_holds_bibs;
 CREATE TEMP TABLE temp_system_wide_holds_bibs AS
 SELECT
 r.record_type_code || r.record_num || 'a' as bib_num,
+p.publish_year as pub_year,
+b.cataloging_date_gmt::date as cat_date,
+t.bcode2 as media_type,
+-- (
+-- 	SELECT
+-- 	bn.name
+--
+-- 	FROM
+-- 	sierra_view.user_defined_bcode2_myuser as bn
+--
+-- 	WHERE
+-- 	bn.code = t.bcode2
+--
+-- 	LIMIT 1
+-- ) as media_type,
+p.best_title as title,
+p.best_title_norm,
+p.best_author as author,
+(
+	SELECT
+	regexp_replace(trim(v.field_content), '(\|[a-z]{1})', '', 'ig') as call_number -- get the call number strip the subfield indicators
+
+	FROM
+	sierra_view.varfield as v
+
+	WHERE
+	v.record_id = t.bib_record_id
+	AND v.varfield_type_code = 'c'
+
+	ORDER BY
+	v.occ_num
+
+	LIMIT 1
+) as call_number,
 t.count_active_holds,
 t.count_active_copies,
 COALESCE(t.count_copies_on_order, 0) as count_copies_on_order,
@@ -380,6 +414,16 @@ sierra_view.record_metadata as r
 ON
   r.id = t.bib_record_id
 
+JOIN
+sierra_view.bib_record_property as p
+ON
+  p.bib_record_id = t.bib_record_id
+
+JOIN
+sierra_view.bib_record as b
+ON
+  b.record_id = t.bib_record_id
+
 WHERE
 t.count_active_copies > 0
 AND t.count_active_holds > 0
@@ -391,15 +435,15 @@ AND (
 	)
 	OR (
 		t.bcode2 IN ('i', 'j', 'q')
-		AND ( 
-			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		AND (
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 6.0::float
 	)
 	-- if bcode2 is none of the above, and it has a ratio above 3:1 show it.
 	OR (
 		t.bcode2 NOT IN ('g', 'i', 'j', 'q')
-		AND ( 
-			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		AND (
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 3.0::float
 	)
 )
@@ -428,7 +472,7 @@ WHERE t.record_id IN (
 ---
 
 
--- Produce the temporary table that will be used to output System-Wide Holds volume 
+-- Produce the temporary table that will be used to output System-Wide Holds volume
 ---
 DROP TABLE IF EXISTS temp_system_wide_holds_volumes;
 
@@ -479,15 +523,15 @@ AND (
 	)
 	OR (
 		t.bcode2 IN ('i', 'j', 'q')
-		AND ( 
-			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		AND (
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 6.0::float
 	)
 	-- if bcode2 is none of the above, and it has a ratio above 3:1 show it.
 	OR (
 		t.bcode2 NOT IN ('g', 'i', 'j', 'q')
-		AND ( 
-			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float 
+		AND (
+			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 3.0::float
 	)
 )

@@ -186,6 +186,7 @@ class App:
 
 		cell_format_bold = wb.add_format({'bold': True})
 		cell_format_decimal = wb.add_format({'num_format': '0.00'})
+		cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
 
 		# debug
 		# use these if we want to get additional holds info
@@ -197,20 +198,31 @@ class App:
 		# ws_bib_level_all.set_row(0, None, cell_format_bold)
 		# ws_vol_level_all.set_row(0, None, cell_format_bold)
 
-		ws_bib_level.set_column('A:A', 10)
+		# set bib_level worksheet columns
+		ws_bib_level.set_column('A:A', 10) # "bib_num"
 		# ws_bib_level_all.set_column('A:A', 10)
 
-		ws_bib_level.set_column('B:B', 12)
+		ws_bib_level.set_column('B:B', 10) # "pub_year"
 		# ws_bib_level_all.set_column('B:B', 12)
 
-		ws_bib_level.set_column('C:C', 12)
+		ws_bib_level.set_column('C:C', 11, cell_format_date) # "cat_date"
 		# self.ws_bib_level_all.set_column('C:C', 12)
 
-		ws_bib_level.set_column('D:D', 14)
+		ws_bib_level.set_column('D:D', 14) # "media_type"
 		# ws_bib_level_all.set_column('D:D', 14)
 
-		ws_bib_level.set_column('E:E', 14, cell_format_decimal)
-		# ws_bib_level_all.set_column('E:E', 14, cell_format_decimal)
+		ws_bib_level.set_column('E:E', 25) # "title"
+
+		ws_bib_level.set_column('F:F', 18) # "call_number"
+
+		ws_bib_level.set_column('G:G', 13) # "active_holds"
+
+		ws_bib_level.set_column('H:H', 13) # "active_copies"
+
+		ws_bib_level.set_column('I:I', 13) # "copies_on_order"
+
+		ws_bib_level.set_column('J:J', 13, cell_format_decimal) # "holds_to_copies"
+
 
 
 		ws_vol_level.set_column('A:A', 10)
@@ -251,11 +263,15 @@ class App:
 		ws_bib_level.write_row(0, 0,
 			(
 				"bib_num",
+				"pub_year",
+				"cat_date",
+				"media_type",
+				"title",
+				"call_number",
 				"active_holds",
 				"active_copies",
 				"copies_on_order",
-				"holds_to_copies",
-				"bcode2"
+				"holds_to_copies"
 		))
 
 		row_counter=1
@@ -267,11 +283,15 @@ class App:
 			ws_bib_level.write_row(row_counter, 0,
 				(
 					row['bib_num'],
+					row['pub_year'],
+					row['cat_date'],
+					row['media_type'],
+					row['title'],
+					row['call_number'],
 					row['count_active_holds'],
 					row['total_count_copies'],
 					row['count_copies_on_order'],
-					float(format(row['ratio_holds_to_copies'], '.2f')),
-					row['bcode2']
+					float(format(row['ratio_holds_to_copies'], '.2f'))
 			))
 			row_counter+=1
 
