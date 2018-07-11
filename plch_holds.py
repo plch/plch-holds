@@ -21,25 +21,27 @@ class App:
 		self.sqlite_conn = None
 		#~ the remote database connection
 		self.pgsql_conn = None
-		
+
 		#~ here are the queries we're using for this process
 		#~ these files can be found in the same base project folder
-		#~ 1) System-wide holds
+
+		# overall query that creates temp tables for eventual output
 		self.temp_tables_sql = 'base_holds_query_temp_tables.sql'
+
+		#~ 1) System-wide holds
 		self.bib_output_sql = 'base_holds_query-bib_output.sql'
 		self.vol_output_sql = 'base_holds_query-vol_output.sql'
 
-		self.bib_output_all_sql = 'base_holds_query_bib_output_all.sql'
-		self.vol_output_all_sql = 'base_holds_query_vol_output_all.sql'
-		
+		# debug
+		# we can add these back in if we want to examine more of the holds
+		# ...add back in the sheets below if using these
+		# self.bib_output_all_sql = 'base_holds_query_bib_output_all.sql'
+		# self.vol_output_all_sql = 'base_holds_query_vol_output_all.sql'
+
 		#~ define our output directory (from the base of this directory)
 		self.output_dir = os.getcwd() + "/output"
 		if not os.path.exists(self.output_dir):
 			os.makedirs(self.output_dir)
-
-		#~ define our output for the excel spreadsheet and set up some
-		#~ extra parameters
-		self.set_wb_params()
 
 		self.test_sql = 'test.sql'
 
@@ -52,179 +54,21 @@ class App:
 
 		#~ open the database connections
 		#~ TODO:
-		#~ if we're going to be using this object as a "long living" one, 
-		#~ maybe write a test to see if the connections are open, and if 
+		#~ if we're going to be using this object as a "long living" one,
+		#~ maybe write a test to see if the connections are open, and if
 		#~ not, loop connection attemts with a reasonable timeout
 		self.open_db_connections()
 
 		#~ create the table if it doesn't exist
 		self.create_local_table()
 
-		#~ create the temp tables on the sierra-db server that we'll be 
+		#~ create the temp tables on the sierra-db server that we'll be
 		#~ using for later queries
 		self.query_create_temp_tables()
 
+		#~ create the system wide holds output (excel workbook)
+		self.create_system_wide_wb()
 
-		"""
-		bib_level
-		"""
-		#~ generate output for the bib_records matching our criteria
-
-		#~ set the column names for the spreadsheet
-		self.ws_bib_level.write_row(0, 0, 
-			(
-				"bib_num",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies",
-				"bcode2"
-		))
-
-		row_counter=1
-		for row in self.gen_sierra_data(self.bib_output_sql):
-			#~ debug
-			#~ print(row_counter, end=": ")
-			#~ print(row)
-
-			self.ws_bib_level.write_row(row_counter, 0,
-				(
-					row['bib_num'], 
-					row['count_active_holds'],
-					row['total_count_copies'],
-					row['count_copies_on_order'], 
-					float(format(row['ratio_holds_to_copies'], '.2f')),
-					row['bcode2']
-			))
-			row_counter+=1
-
-		"""
-		/bib_level
-		"""
-
-
-		"""
-		bib_level_all
-		"""
-		#~ generate output for the bib_records matching our criteria
-
-		#~ set the column names for the spreadsheet
-		self.ws_bib_level_all.write_row(0, 0, 
-			(
-				"bib_num",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies",
-				"bcode2"
-		))
-
-		row_counter=1
-		for row in self.gen_sierra_data(self.bib_output_all_sql):
-			#~ debug
-			#~ print(row_counter, end=": ")
-			#~ print(row)
-			
-			self.ws_bib_level_all.write_row(row_counter, 0,
-				(
-					row['bib_num'],
-					row['count_active_holds'],
-					row['total_count_copies'],
-					row['count_copies_on_order'],
-					float(str("{0:.2f}").format(row['ratio_holds_to_copies'])),
-					row['bcode2']
-			))
-			row_counter+=1
-			
-		"""
-		/bib_level_all
-		"""
-		
-		
-		
-		"""
-		vol_level
-		"""
-		#~ generate output for the vol_records matching our criteria
-
-		#~ set the column names for the spreadsheet
-		self.ws_vol_level.write_row(0, 0, 
-			(
-				"bib_num",
-				"vol_num",
-				"vol",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies",
-				"bcode2"
-		))
-
-		row_counter=1
-		for row in self.gen_sierra_data(self.vol_output_sql):
-			#~ debug
-			#~ print(row_counter, end=": ")
-			#~ print(row)
-
-			self.ws_vol_level.write_row(row_counter, 0,
-				(
-					row['bib_num'],
-					row['vol_num'],
-					row['vol'],
-					row['count_active_holds'],
-					row['total_count_copies'],
-					row['count_copies_on_order'],
-					float(str("{0:.2f}").format(row['ratio_holds_to_copies'])),
-					row['bcode2']
-			))
-			row_counter+=1
-
-		"""
-		/vol_level
-		"""
-
-		"""
-		vol_level_all
-		"""
-		#~ generate output for the vol_records matching our criteria
-		#~ set the column names for the spreadsheet
-		self.ws_vol_level_all.write_row(0, 0, 
-			(
-				"bib_num",
-				"vol_num",
-				"vol",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies",
-				"bcode2"
-		))
-
-		row_counter=1
-		for row in self.gen_sierra_data(self.vol_output_all_sql):
-			#~ debug
-			#~ print(row_counter, end=": ")
-			#~ print(row)
-
-			self.ws_vol_level_all.write_row(row_counter, 0,
-				(
-					row['bib_num'],
-					row['vol_num'],
-					row['vol'], 
-					row['count_active_holds'],
-					row['total_count_copies'],
-					row['count_copies_on_order'],
-					float(str("{0:.2f}").format(row['ratio_holds_to_copies'])),
-					row['bcode2']
-			))
-			row_counter+=1
-
-		"""
-		/vol_level_all
-		"""
-
-		#~ for some reason, this doesn't play nice in the destructor, so we do it here
-		self.wb.close()
 
 
 	#~ the destructor
@@ -251,22 +95,22 @@ class App:
 			self.sqlite_conn = sqlite3.connect(self.local_db_connection_string)
 		except sqlite3.Error as e:
 			print("unable to connect to local database: %s" % e)
-			
-			
+
+
 	def close_db_connections(self):
 		print("closing database connections...")
 		if self.pgsql_conn:
 			if hasattr(self.pgsql_conn, 'close'):
 				print("closing pgsql_conn")
 				self.pgsql_conn.close()
-				
+
 			self.pgsql_conn = None
 
 		if self.sqlite_conn:
 			if hasattr(self.sqlite_conn, 'commit'):
 				print("commiting pending transactions to sqlite db...")
 				self.sqlite_conn.commit()
-			
+
 			if hasattr(self.sqlite_conn, 'close'):
 				print("closing sqlite_conn")
 				self.sqlite_conn.close()
@@ -279,11 +123,11 @@ class App:
 
 
 	def query_create_temp_tables(self):
-		#~ create the cursor, and execute the sql to produce the temp 
-		#~ tables on the sierra-db from the external sql file 
+		#~ create the cursor, and execute the sql to produce the temp
+		#~ tables on the sierra-db from the external sql file
 		#~ self.temp_tables_sql
 		sql_string = open(self.temp_tables_sql, mode='r', encoding='utf-8-sig').read()
-		
+
 		try:
 			with self.pgsql_conn as conn:
 				with conn.cursor() as cursor:
@@ -308,7 +152,7 @@ class App:
 				#~ TODO
 				#~ maybe think about encoding the string utf-8 as well?
 
-			generator_cursor = "gen_cur" + str(self.rand_int(10))			
+			generator_cursor = "gen_cur" + str(self.rand_int(10))
 			cursor = self.pgsql_conn.cursor(name=generator_cursor, cursor_factory=psycopg2.extras.DictCursor)
 			cursor.itersize = self.itersize
 
@@ -323,76 +167,164 @@ class App:
 
 				for row in rows:
 					# do something with row
-					yield row	
-					
+					yield row
+
 			cursor.close()
 			cursor = None
 
 		except psycopg2.Error as e:
 			print("psycopg2 Error: {}".format(e))
-			
-			
-	def set_wb_params(self):
-		
-		self.file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
-		self.wb = xlsxwriter.Workbook(self.file_wb)
-		self.ws_bib_level = self.wb.add_worksheet("bib_level")
-		self.ws_vol_level = self.wb.add_worksheet("vol_level")
-		self.ws_bib_level_all = self.wb.add_worksheet("bib_level_all")
-		self.ws_vol_level_all = self.wb.add_worksheet("vol_level_all")
-
-		cell_format_bold = self.wb.add_format({'bold': True})
-		cell_format_decimal = self.wb.add_format({'num_format': '0.00'})
-
-		self.ws_bib_level.set_row(0, None, cell_format_bold)
-		self.ws_vol_level.set_row(0, None, cell_format_bold)
-		self.ws_bib_level_all.set_row(0, None, cell_format_bold)
-		self.ws_vol_level_all.set_row(0, None, cell_format_bold)
-
-		self.ws_bib_level.set_column('A:A', 10)
-		self.ws_bib_level_all.set_column('A:A', 10)
-		
-		self.ws_bib_level.set_column('B:B', 12)
-		self.ws_bib_level_all.set_column('B:B', 12)
-
-		self.ws_bib_level.set_column('C:C', 12)
-		self.ws_bib_level_all.set_column('C:C', 12)
-
-		self.ws_bib_level.set_column('D:D', 14)
-		self.ws_bib_level_all.set_column('D:D', 14)
-		
-		self.ws_bib_level.set_column('E:E', 14, cell_format_decimal)
-		self.ws_bib_level_all.set_column('E:E', 14, cell_format_decimal)
 
 
-		self.ws_vol_level.set_column('A:A', 10)
-		self.ws_vol_level_all.set_column('A:A', 10)
+	# create the workbook for the system wide holds
+	def create_system_wide_wb(self):
 
-		self.ws_vol_level.set_column('B:B', 10)
-		self.ws_vol_level_all.set_column('B:B', 10)
-		
-		self.ws_vol_level.set_column('C:C', 14)
-		self.ws_vol_level_all.set_column('C:C', 14)
+		system_wide_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
+		wb = xlsxwriter.Workbook(system_wide_file_wb)
+		ws_bib_level = wb.add_worksheet("bib_level")
+		ws_vol_level = wb.add_worksheet("vol_level")
 
-		self.ws_vol_level.set_column('D:D', 12)
-		self.ws_vol_level_all.set_column('D:D', 12)
+		cell_format_bold = wb.add_format({'bold': True})
+		cell_format_decimal = wb.add_format({'num_format': '0.00'})
 
-		self.ws_vol_level.set_column('E:E', 12)
-		self.ws_vol_level_all.set_column('E:E', 12)
+		# debug
+		# use these if we want to get additional holds info
+		# self.ws_bib_level_all = self.wb.add_worksheet("bib_level_all")
+		# self.ws_vol_level_all = self.wb.add_worksheet("vol_level_all")
 
-		self.ws_vol_level.set_column('F:F', 14)
-		self.ws_vol_level_all.set_column('F:F', 14)
+		ws_bib_level.set_row(0, None, cell_format_bold)
+		ws_vol_level.set_row(0, None, cell_format_bold)
+		# ws_bib_level_all.set_row(0, None, cell_format_bold)
+		# ws_vol_level_all.set_row(0, None, cell_format_bold)
 
-		self.ws_vol_level.set_column('G:G', 14, cell_format_decimal)
-		self.ws_vol_level_all.set_column('G:G', 14, cell_format_decimal)
+		ws_bib_level.set_column('A:A', 10)
+		# ws_bib_level_all.set_column('A:A', 10)
 
-		self.ws_vol_level.set_column('H:H', 10)
-		self.ws_vol_level_all.set_column('H:H', 10)
+		ws_bib_level.set_column('B:B', 12)
+		# ws_bib_level_all.set_column('B:B', 12)
 
-		self.ws_bib_level.freeze_panes(1, 0)
-		self.ws_vol_level.freeze_panes(1, 0)
-		self.ws_bib_level_all.freeze_panes(1, 0)
-		self.ws_vol_level_all.freeze_panes(1, 0)
+		ws_bib_level.set_column('C:C', 12)
+		# self.ws_bib_level_all.set_column('C:C', 12)
+
+		ws_bib_level.set_column('D:D', 14)
+		# ws_bib_level_all.set_column('D:D', 14)
+
+		ws_bib_level.set_column('E:E', 14, cell_format_decimal)
+		# ws_bib_level_all.set_column('E:E', 14, cell_format_decimal)
+
+
+		ws_vol_level.set_column('A:A', 10)
+		# ws_vol_level_all.set_column('A:A', 10)
+
+		ws_vol_level.set_column('B:B', 10)
+		# ws_vol_level_all.set_column('B:B', 10)
+
+		ws_vol_level.set_column('C:C', 14)
+		# ws_vol_level_all.set_column('C:C', 14)
+
+		ws_vol_level.set_column('D:D', 12)
+		# ws_vol_level_all.set_column('D:D', 12)
+
+		ws_vol_level.set_column('E:E', 12)
+		# ws_vol_level_all.set_column('E:E', 12)
+
+		ws_vol_level.set_column('F:F', 14)
+		# ws_vol_level_all.set_column('F:F', 14)
+
+		ws_vol_level.set_column('G:G', 14, cell_format_decimal)
+		# ws_vol_level_all.set_column('G:G', 14, cell_format_decimal)
+
+		ws_vol_level.set_column('H:H', 10)
+		# ws_vol_level_all.set_column('H:H', 10)
+
+		ws_bib_level.freeze_panes(1, 0)
+		ws_vol_level.freeze_panes(1, 0)
+		# ws_bib_level_all.freeze_panes(1, 0)
+		# ws_vol_level_all.freeze_panes(1, 0)
+
+		"""
+		bib_level
+		"""
+		#~ generate output for the bib_records matching our criteria
+
+		#~ set the column names for the spreadsheet
+		ws_bib_level.write_row(0, 0,
+			(
+				"bib_num",
+				"active_holds",
+				"active_copies",
+				"copies_on_order",
+				"holds_to_copies",
+				"bcode2"
+		))
+
+		row_counter=1
+		for row in self.gen_sierra_data(self.bib_output_sql):
+			#~ debug
+			#~ print(row_counter, end=": ")
+			#~ print(row)
+
+			ws_bib_level.write_row(row_counter, 0,
+				(
+					row['bib_num'],
+					row['count_active_holds'],
+					row['total_count_copies'],
+					row['count_copies_on_order'],
+					float(format(row['ratio_holds_to_copies'], '.2f')),
+					row['bcode2']
+			))
+			row_counter+=1
+
+		"""
+		/bib_level
+		"""
+
+		"""
+		vol_level
+		"""
+		#~ generate output for the vol_records matching our criteria
+
+		#~ set the column names for the spreadsheet
+		ws_vol_level.write_row(0, 0,
+			(
+				"bib_num",
+				"vol_num",
+				"vol",
+				"active_holds",
+				"active_copies",
+				"copies_on_order",
+				"holds_to_copies",
+				"bcode2"
+		))
+
+		row_counter=1
+		for row in self.gen_sierra_data(self.vol_output_sql):
+			#~ debug
+			#~ print(row_counter, end=": ")
+			#~ print(row)
+
+			ws_vol_level.write_row(row_counter, 0,
+				(
+					row['bib_num'],
+					row['vol_num'],
+					row['vol'],
+					row['count_active_holds'],
+					row['total_count_copies'],
+					row['count_copies_on_order'],
+					float(str("{0:.2f}").format(row['ratio_holds_to_copies'])),
+					row['bcode2']
+			))
+			row_counter+=1
+
+		"""
+		/vol_level
+		"""
+
+		# debug
+		# add additional blocks like the one above to output to ws_bib_level_all
+		# and ws_vol_level_all
+
+		wb.close()
 
 
 start_time = datetime.now()
