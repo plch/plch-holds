@@ -11,6 +11,7 @@ from datetime import datetime, date
 from random import randint
 import xlsxwriter
 from codecs import open
+import pdb
 
 
 class App:
@@ -208,21 +209,20 @@ class App:
 		ws_bib_level.set_column('C:C', 11, cell_format_date) # "cat_date"
 		# self.ws_bib_level_all.set_column('C:C', 12)
 
-		ws_bib_level.set_column('D:D', 14) # "media_type"
+		ws_bib_level.set_column('D:D', 10) # "media_type"
 		# ws_bib_level_all.set_column('D:D', 14)
 
-		ws_bib_level.set_column('E:E', 25) # "title"
+		ws_bib_level.set_column('E:E', 28) # "title"
 
-		ws_bib_level.set_column('F:F', 18) # "call_number"
+		ws_bib_level.set_column('F:F', 20) # "call_number"
 
-		ws_bib_level.set_column('G:G', 13) # "active_holds"
+		ws_bib_level.set_column('G:G', 14) # "active_holds"
 
-		ws_bib_level.set_column('H:H', 13) # "active_copies"
+		ws_bib_level.set_column('H:H', 14) # "active_copies"
 
-		ws_bib_level.set_column('I:I', 13) # "copies_on_order"
+		ws_bib_level.set_column('I:I', 14) # "copies_on_order"
 
-		ws_bib_level.set_column('J:J', 13, cell_format_decimal) # "holds_to_copies"
-
+		ws_bib_level.set_column('J:J', 14, cell_format_decimal) # "holds_to_copies"
 
 
 		ws_vol_level.set_column('A:A', 10)
@@ -279,6 +279,9 @@ class App:
 			#~ debug
 			#~ print(row_counter, end=": ")
 			#~ print(row)
+
+			# debug
+			# pdb.set_trace()
 
 			ws_bib_level.write_row(row_counter, 0,
 				(

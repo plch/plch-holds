@@ -368,7 +368,7 @@ b.cataloging_date_gmt::date as cat_date,
 t.bcode2 as media_type,
 -- (
 -- 	SELECT
--- 	bn.name
+-- 	bn.name::text
 --
 -- 	FROM
 -- 	sierra_view.user_defined_bcode2_myuser as bn
@@ -378,6 +378,7 @@ t.bcode2 as media_type,
 --
 -- 	LIMIT 1
 -- ) as media_type,
+-- n.name as media_type, -- i don't know why this isn't working
 p.best_title as title,
 p.best_title_norm,
 p.best_author as author,
@@ -423,6 +424,11 @@ JOIN
 sierra_view.bib_record as b
 ON
   b.record_id = t.bib_record_id
+
+LEFT OUTER JOIN
+sierra_view.user_defined_bcode2_myuser as n
+ON
+  n.code = t.bcode2
 
 WHERE
 t.count_active_copies > 0
