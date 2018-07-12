@@ -365,7 +365,7 @@ SELECT
 r.record_type_code || r.record_num || 'a' as bib_num,
 p.publish_year as pub_year,
 b.cataloging_date_gmt::date as cat_date,
-t.bcode2 as media_type,
+-- t.bcode2 as media_type,
 -- (
 -- 	SELECT
 -- 	bn.name::text
@@ -378,6 +378,10 @@ t.bcode2 as media_type,
 --
 -- 	LIMIT 1
 -- ) as media_type,
+
+(
+	SELECT 'some string for media_type'
+) as media_type,
 -- n.name as media_type, -- i don't know why this isn't working
 p.best_title as title,
 p.best_title_norm,
