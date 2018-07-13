@@ -401,19 +401,19 @@ class App:
 
 	  ws_90_day.set_column('E:E', 10) # "media_type"
 
-	  ws_90_day.set_column('F:F', 30) # "best_title"
+	  ws_90_day.set_column('F:F', 30) # "title"
 
-	  ws_90_day.set_column('G:G', 15) # "call_number"
+	  ws_90_day.set_column('G:G', 25) # "call_number"
 
-	  ws_90_day.set_column('H:H', 10) # "over_90_not_os"
+	  ws_90_day.set_column('H:H', 13) # "over_90_not_os"
 
-	  ws_90_day.set_column('I:I', 10) # "over_90_os"
+	  ws_90_day.set_column('I:I', 13) # "over_90_os"
 
-	  ws_90_day.set_column('J:J', 10) # "count_active_holds"
+	  ws_90_day.set_column('J:J', 14) # "count_active_holds"
 
-	  ws_90_day.set_column('K:K', 10) # "count_active_copies"
+	  ws_90_day.set_column('K:K', 14) # "count_active_copies"
 
-	  ws_90_day.set_column('L:L', 10) # "count_copies_on_order"
+	  ws_90_day.set_column('L:L', 14) # "count_copies_on_order"
 
 	  ws_90_day.freeze_panes(1, 0)
 
