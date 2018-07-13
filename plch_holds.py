@@ -203,7 +203,7 @@ class App:
 		ws_bib_level.set_column('A:A', 10) # "bib_num"
 		# ws_bib_level_all.set_column('A:A', 10)
 
-		ws_bib_level.set_column('B:B', 10) # "pub_year"
+		ws_bib_level.set_column('B:B', 8) # "pub_year"
 		# ws_bib_level_all.set_column('B:B', 12)
 
 		ws_bib_level.set_column('C:C', 11, cell_format_date) # "cat_date"
@@ -212,9 +212,9 @@ class App:
 		ws_bib_level.set_column('D:D', 10) # "media_type"
 		# ws_bib_level_all.set_column('D:D', 14)
 
-		ws_bib_level.set_column('E:E', 28) # "title"
+		ws_bib_level.set_column('E:E', 30) # "title"
 
-		ws_bib_level.set_column('F:F', 20) # "call_number"
+		ws_bib_level.set_column('F:F', 25) # "call_number"
 
 		ws_bib_level.set_column('G:G', 14) # "active_holds"
 
@@ -225,28 +225,35 @@ class App:
 		ws_bib_level.set_column('J:J', 14, cell_format_decimal) # "holds_to_copies"
 
 
-		ws_vol_level.set_column('A:A', 10)
+		ws_vol_level.set_column('A:A', 10) # bib_num
 		# ws_vol_level_all.set_column('A:A', 10)
 
-		ws_vol_level.set_column('B:B', 10)
+		ws_vol_level.set_column('B:B', 12) # vol
 		# ws_vol_level_all.set_column('B:B', 10)
 
-		ws_vol_level.set_column('C:C', 14)
+		ws_vol_level.set_column('C:C', 8) # pub_year
 		# ws_vol_level_all.set_column('C:C', 14)
 
-		ws_vol_level.set_column('D:D', 12)
+		ws_vol_level.set_column('D:D', 11, cell_format_date) # cat_date
 		# ws_vol_level_all.set_column('D:D', 12)
 
-		ws_vol_level.set_column('E:E', 12)
+		ws_vol_level.set_column('E:E', 10) # media_type
 		# ws_vol_level_all.set_column('E:E', 12)
 
-		ws_vol_level.set_column('F:F', 14)
+		ws_vol_level.set_column('F:F', 30) # title
 		# ws_vol_level_all.set_column('F:F', 14)
 
-		ws_vol_level.set_column('G:G', 14, cell_format_decimal)
+		ws_vol_level.set_column('G:G', 25) # call_number
 		# ws_vol_level_all.set_column('G:G', 14, cell_format_decimal)
 
-		ws_vol_level.set_column('H:H', 10)
+		ws_vol_level.set_column('H:H', 14) # active_holds
+
+		ws_vol_level.set_column('I:I', 14) # active_copies
+
+		ws_vol_level.set_column('J:J', 14) # copies_on_order
+
+		ws_vol_level.set_column('K:K', 14, cell_format_decimal) # holds_to_copies
+
 		# ws_vol_level_all.set_column('H:H', 10)
 
 		ws_bib_level.freeze_panes(1, 0)
@@ -310,14 +317,27 @@ class App:
 		#~ set the column names for the spreadsheet
 		ws_vol_level.write_row(0, 0,
 			(
+				# "bib_num",
+				# # "vol_num",
+				# "vol",
+				# "active_holds",
+				# "active_copies",
+				# "copies_on_order",
+				# "holds_to_copies",
+				# "bcode2"
+
 				"bib_num",
-				"vol_num",
 				"vol",
+				"pub_year",
+				"cat_date",
+				"media_type",
+				"title",
+				"call_number",
 				"active_holds",
 				"active_copies",
 				"copies_on_order",
-				"holds_to_copies",
-				"bcode2"
+				"holds_to_copies"
+
 		))
 
 		row_counter=1
@@ -329,13 +349,16 @@ class App:
 			ws_vol_level.write_row(row_counter, 0,
 				(
 					row['bib_num'],
-					row['vol_num'],
 					row['vol'],
+					row['pub_year'],
+					row['cat_date'],
+					row['media_type'],
+					row['title'],
+					row['call_number'],
 					row['count_active_holds'],
 					row['total_count_copies'],
 					row['count_copies_on_order'],
-					float(str("{0:.2f}").format(row['ratio_holds_to_copies'])),
-					row['bcode2']
+					float(format(row['ratio_holds_to_copies'], '.2f'))
 			))
 			row_counter+=1
 

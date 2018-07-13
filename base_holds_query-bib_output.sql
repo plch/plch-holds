@@ -28,12 +28,6 @@ count_active_copies,
 total_count_copies,
 count_copies_on_order,
 ratio_holds_to_copies
--- author,
--- total_count_copies,
--- best_title_norm,
--- bcode2,
--- bib_record_id,
--- record_id
 
 FROM
 temp_system_wide_holds_bibs as t

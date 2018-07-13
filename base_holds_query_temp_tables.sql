@@ -365,7 +365,7 @@ SELECT
 r.record_type_code || r.record_num || 'a' as bib_num,
 p.publish_year as pub_year,
 b.cataloging_date_gmt::date as cat_date,
--- t.bcode2 as media_type,
+t.bcode2 as media_type,
 -- (
 -- 	SELECT
 -- 	bn.name::text
@@ -379,9 +379,6 @@ b.cataloging_date_gmt::date as cat_date,
 -- 	LIMIT 1
 -- ) as media_type,
 
-(
-	SELECT 'some string for media_type'
-) as media_type,
 -- n.name as media_type, -- i don't know why this isn't working
 p.best_title as title,
 p.best_title_norm,
@@ -491,9 +488,33 @@ SELECT
 -- id2reckey(t.bib_record_id) || 'a' as bib_num,
 -- id2reckey(t.record_id) || 'a' as vol_num,
 br.record_type_code || br.record_num || 'a' as bib_num,
-vr.record_type_code || vr.record_num || 'a' as vol_num,
-
+-- vr.record_type_code || vr.record_num || 'a' as vol_num,
 v.field_content as vol,
+
+p.publish_year as pub_year,
+b.cataloging_date_gmt::date as cat_date,
+t.bcode2 as media_type,
+p.best_title as title,
+p.best_title_norm,
+p.best_author as author,
+(
+	SELECT
+	regexp_replace(trim(v.field_content), '(\|[a-z]{1})', '', 'ig') as call_number -- get the call number strip the subfield indicators
+
+	FROM
+	sierra_view.varfield as v
+
+	WHERE
+	v.record_id = t.bib_record_id
+	AND v.varfield_type_code = 'c'
+
+	ORDER BY
+	v.occ_num
+
+	LIMIT 1
+) as call_number,
+
+
 t.count_active_holds,
 t.count_active_copies,
 COALESCE(t.count_copies_on_order, 0) as count_copies_on_order,
@@ -521,6 +542,16 @@ sierra_view.varfield as v
 ON
   v.record_id = t.record_id -- t.record_id should be the volume record id
   AND v.varfield_type_code = 'v'
+
+JOIN
+sierra_view.bib_record_property as p
+ON
+  p.bib_record_id = t.bib_record_id
+
+JOIN
+sierra_view.bib_record as b
+ON
+  b.record_id = t.bib_record_id
 
 WHERE
 t.count_active_copies > 0
