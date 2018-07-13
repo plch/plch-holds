@@ -29,9 +29,12 @@ class App:
 		# overall query that creates temp tables for eventual output
 		self.temp_tables_sql = 'base_holds_query_temp_tables.sql'
 
-		#~ 1) System-wide holds
+		# 1) System-wide holds
 		self.bib_output_sql = 'base_holds_query-bib_output.sql'
 		self.vol_output_sql = 'base_holds_query-vol_output.sql'
+
+		# 2) 90-day holds
+		self.ninety_day_output_sql = 'ninety_day_output.sql'
 
 		# debug
 		# we can add these back in if we want to examine more of the holds
@@ -70,6 +73,8 @@ class App:
 		#~ create the system wide holds output (excel workbook)
 		self.create_system_wide_wb()
 
+		# create the 90 day holds output (excel workbook)
+		self.create_90_day_wb()
 
 
 	#~ the destructor
@@ -371,6 +376,91 @@ class App:
 		# and ws_vol_level_all
 
 		wb.close()
+
+
+	def create_90_day_wb(self):
+
+	  ninety_day_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-90_day_holds.xlsx")
+	  wb = xlsxwriter.Workbook(ninety_day_file_wb)
+	  ws_90_day = wb.add_worksheet("90_day_holds")
+
+	  cell_format_bold = wb.add_format({'bold': True})
+	  cell_format_decimal = wb.add_format({'num_format': '0.00'})
+	  cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
+
+	  ws_90_day.set_row(0, None, cell_format_bold)
+
+	  # set worksheet columns
+	  ws_90_day.set_column('A:A', 10) # "bib_num"
+
+	  ws_90_day.set_column('B:B', 8) # "vol"
+
+	  ws_90_day.set_column('C:C', 10) # "pub_year"
+
+	  ws_90_day.set_column('D:D', 11, cell_format_date) # "cat_date"
+
+	  ws_90_day.set_column('E:E', 10) # "media_type"
+
+	  ws_90_day.set_column('F:F', 30) # "best_title"
+
+	  ws_90_day.set_column('G:G', 15) # "call_number"
+
+	  ws_90_day.set_column('H:H', 10) # "over_90_not_os"
+
+	  ws_90_day.set_column('I:I', 10) # "over_90_os"
+
+	  ws_90_day.set_column('J:J', 10) # "count_active_holds"
+
+	  ws_90_day.set_column('K:K', 10) # "count_active_copies"
+
+	  ws_90_day.set_column('L:L', 10) # "count_copies_on_order"
+
+	  ws_90_day.freeze_panes(1, 0)
+
+	  ws_90_day.write_row(0, 0,
+	    (
+	      "bib_num",
+	      "vol",
+	      "pub_year",
+	      "cat_date",
+	      "media_type",
+	      "title",
+	      "call_number",
+	      "over_90_not_os",
+	      "over_90_os",
+	      "active_holds",
+	      "active_copies",
+	      "copies_on_order"
+	  ))
+
+	  row_counter=1
+	  for row in self.gen_sierra_data(self.ninety_day_output_sql):
+	    #~ debug
+	    #~ print(row_counter, end=": ")
+	    #~ print(row)
+
+	    # debug
+	    # pdb.set_trace()
+
+	    ws_90_day.write_row(row_counter, 0,
+	      (
+	        row['bib_num'],
+			row['vol'],
+	        row['pub_year'],
+	        row['cat_date'],
+	        row['media_type'],
+	        row['title'],
+	        row['call_number'],
+	        row['over_90_not_os'],
+	        row['over_90_os'],
+	        row['count_active_holds'],
+			row['count_active_copies'],
+	        row['count_copies_on_order']
+	    ))
+	    row_counter+=1
+
+	  wb.close()
+
 
 
 start_time = datetime.now()

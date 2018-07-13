@@ -711,7 +711,7 @@ t.bcode2 as media_type,
 -- 	WHERE
 -- 	bc.code = t.bcode2
 -- ) as media_type,
-p.best_title,
+p.best_title as title,
 (
 	SELECT
 	regexp_replace(trim(v.field_content), '(\|[a-z]{1})', '', 'ig') as call_number -- get the call number strip the subfield indicators
