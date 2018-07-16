@@ -24,6 +24,7 @@ A listing of titles that have active copies to active holds ratios that exceed g
 1. Determine the **count of active copies** for the title: To determine if an item is to be considered as an `active copy` for the title, it must meet these conditions:
 
    * `item status code` is one of the following:
+      * item is not suppressed (TODO: maybe remove this check?)
       * `'-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+'`
       * `'t'`  AND `item_last_update` has age less than 60 days (this identifies in transit items as being an active copy)
 
