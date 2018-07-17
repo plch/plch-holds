@@ -161,7 +161,8 @@ COALESCE (
 
 	WHERE
 	l.volume_record_id = t.record_id
-	AND i.is_suppressed IS false
+	-- removed check for item record suppression for now
+	-- AND i.is_suppressed IS false
 	AND (
 		(
 			i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
@@ -286,7 +287,8 @@ COALESCE((
 
 	WHERE
 	l.bib_record_id = t.record_id
-	AND i.is_suppressed IS false
+	-- removed check for item record suppression for now
+	-- AND i.is_suppressed IS false
 	AND (
 		(
 			i.item_status_code IN ('-', '!', 'b', 'p', '(', '@', ')', '_', '=', '+')
