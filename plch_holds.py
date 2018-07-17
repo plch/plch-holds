@@ -405,9 +405,9 @@ class App:
 
 	  ws_90_day.set_column('G:G', 25) # "call_number"
 
-	  ws_90_day.set_column('H:H', 13) # "over_90_not_os"
+	  ws_90_day.set_column('H:H', 14) # "over_90_not_os"
 
-	  ws_90_day.set_column('I:I', 13) # "over_90_os"
+	  ws_90_day.set_column('I:I', 14) # "over_90_os"
 
 	  ws_90_day.set_column('J:J', 14) # "count_active_holds"
 
