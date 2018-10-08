@@ -803,12 +803,25 @@ ON
 ---
 
 
--- SELECT * FROM temp_90_day_output;
+---
+-- CREATING TEMP TABLE FOR THE MATERIAL TYPE CODES IN OUTPUT
+DROP TABLE IF EXISTS temp_map_material_type
+;
 
+CREATE TEMP TABLE temp_map_material_type AS
+SELECT
+p.code as code,
+n.name as name
 
+FROM
+sierra_view.material_property as p
 
-
-
+JOIN
+sierra_view.material_property_name as n
+ON
+  n.material_property_id = p.id
+;
+---
 
 
 

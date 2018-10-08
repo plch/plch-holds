@@ -20,7 +20,7 @@ SELECT
 bib_num,
 pub_year,
 cat_date,
-media_type,
+m.name AS media_type,
 title,
 call_number,
 count_active_holds,
@@ -32,6 +32,12 @@ ratio_holds_to_copies
 FROM
 temp_system_wide_holds_bibs as t
 
+JOIN
+temp_map_material_type as m
+ON
+  m.code = t.media_type
+
 ORDER BY
 bcode2,
 bib_record_id
+;
