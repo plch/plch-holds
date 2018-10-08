@@ -443,14 +443,14 @@ AND (
 		) > 9.0::float
 	)
 	OR (
-		t.bcode2 IN ('i', 'j', 'q')
+		t.bcode2 IN ('i', 'j', 'q', '8')
 		AND (
 			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 6.0::float
 	)
 	-- if bcode2 is none of the above, and it has a ratio above 3:1 show it.
 	OR (
-		t.bcode2 NOT IN ('g', 'i', 'j', 'q')
+		t.bcode2 NOT IN ('g', 'i', 'j', 'q', '8')
 		AND (
 			t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 3.0::float
