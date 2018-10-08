@@ -304,7 +304,8 @@ class App:
 					row['title'],
 					row['call_number'],
 					row['count_active_holds'],
-					row['total_count_copies'],
+					# row['total_count_copies'],
+					row['count_active_copies'],
 					row['count_copies_on_order'],
 					float(format(row['ratio_holds_to_copies'], '.2f'))
 			))
@@ -361,7 +362,8 @@ class App:
 					row['title'],
 					row['call_number'],
 					row['count_active_holds'],
-					row['total_count_copies'],
+					# row['total_count_copies'],
+					row['count_active_copies'],
 					row['count_copies_on_order'],
 					float(format(row['ratio_holds_to_copies'], '.2f'))
 			))
