@@ -4,3 +4,10 @@
 
 [local_db]
 	connection_string = plch_holds.db
+
+[email]
+    smtp_host = smtp.mandrillapp.com
+    smtp_username = plchilsadmin@cincinnatilibrary.org
+    smtp_password = SET_PASSWORD_OR_API_KEY_HERE
+    email_from = email.from@name.org
+    email_to = email1@name.org, email2@name.org, email3@name.org

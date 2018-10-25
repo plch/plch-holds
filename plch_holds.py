@@ -23,9 +23,9 @@ class App:
 		#~ the remote database connection
 		self.pgsql_conn = None
 
-		#~ here are the queries we're using for this process
-		#~ these files can be found in the same base project folder
-
+		# here are the queries we're using for this process
+		# these files can be found in the same base project folder
+		#
 		# overall query that creates temp tables for eventual output
 		self.temp_tables_sql = 'base_holds_query_temp_tables.sql'
 
@@ -45,6 +45,10 @@ class App:
 		self.output_dir = os.getcwd() + "/output"
 		if not os.path.exists(self.output_dir):
 			os.makedirs(self.output_dir)
+
+		# define our output filename (from the base of this directory)
+		# sytem_wide_holds excel workbook
+		self.system_wide_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
 
 		self.test_sql = 'test.sql'
 
@@ -184,8 +188,7 @@ class App:
 	# create the workbook for the system wide holds
 	def create_system_wide_wb(self):
 
-		system_wide_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
-		wb = xlsxwriter.Workbook(system_wide_file_wb)
+		wb = xlsxwriter.Workbook(self.system_wide_file_wb)
 		ws_bib_level = wb.add_worksheet(date.today().strftime("%Y-%m-%d"))
 		# ws_vol_level = wb.add_worksheet("vol_level")
 
@@ -397,10 +400,56 @@ class App:
 	  wb.close()
 
 
+if __name__ == "__main__":
+	start_time = datetime.now()
+	print('starting import at: \t\t{}'.format(start_time))
 
-start_time = datetime.now()
-print('starting import at: \t\t{}'.format(start_time))
-app = App()
-end_time = datetime.now()
-print('finished import at: \t\t{}'.format(end_time))
-print('total import time: \t\t{}'.format(end_time - start_time))
+	app = App()
+
+    # for email ...
+	import smtplib
+	from email.mime.text import MIMEText
+	from email.mime.application import MIMEApplication
+	from email.mime.multipart import MIMEMultipart
+	from os.path import basename
+	config = configparser.ConfigParser()
+	config.read('config.ini')
+
+	msg = MIMEMultipart()
+	# msg = MIMEText('System-Wide Holds Report: see attached')
+	msg['Subject'] = 'System Wide Holds Report'
+	msg['From'] = config['email']['email_from']
+	msg['To'] = config['email']['email_to']
+	msg.attach(MIMEText('System-Wide Holds Report: see attached'))
+
+	# pdb.set_trace()
+	file_name = app.system_wide_file_wb
+
+	with open(file_name, 'rb') as open_file:
+		part = MIMEApplication(
+			open_file.read(),
+			Name=basename(file_name)
+		)
+	part['Content-Disposition'] = 'attachment; filename="{}"'.format(basename(file_name))
+	msg.attach(part)
+
+	mailserver = smtplib.SMTP(config['email']['smtp_host'], 587)
+	# identify ourselves to smtp client
+	mailserver.ehlo()
+	# secure our email with tls encryption
+	mailserver.starttls()
+	# re-identify ourselves as an encrypted connection
+	mailserver.ehlo()
+	mailserver.login(config['email']['smtp_username'], config['email']['smtp_password'])
+	mailserver.sendmail(config['email']['email_from'],
+		# sendmail expects recipients as a list
+		[email.strip(' ') for email in config['email']['email_to'].split(',')],
+		msg.as_string()
+	)
+
+	mailserver.quit()
+	mailserver = None
+
+	end_time = datetime.now()
+	print('finished import at: \t\t{}'.format(end_time))
+	print('total import time: \t\t{}'.format(end_time - start_time))
