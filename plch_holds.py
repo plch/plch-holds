@@ -29,9 +29,8 @@ class App:
 		# overall query that creates temp tables for eventual output
 		self.temp_tables_sql = 'base_holds_query_temp_tables.sql'
 
-		# 1) System-wide holds
-		self.bib_output_sql = 'base_holds_query-bib_output.sql'
-		self.vol_output_sql = 'base_holds_query-vol_output.sql'
+		# 1) System-wide holds output
+		self.system_wide_output_sql = 'system_wide_output.sql'
 
 		# 2) 90-day holds
 		self.ninety_day_output_sql = 'ninety_day_output.sql'
@@ -187,20 +186,23 @@ class App:
 
 		system_wide_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
 		wb = xlsxwriter.Workbook(system_wide_file_wb)
-		ws_bib_level = wb.add_worksheet("bib_level")
-		ws_vol_level = wb.add_worksheet("vol_level")
+		ws_bib_level = wb.add_worksheet(date.today().strftime("%Y-%m-%d"))
+		# ws_vol_level = wb.add_worksheet("vol_level")
 
-		cell_format_bold = wb.add_format({'bold': True})
-		cell_format_decimal = wb.add_format({'num_format': '0.00'})
+		cell_format_bold_center = wb.add_format({'bold': True, 'align': 'center'})
+		cell_format_decimal = wb.add_format({'num_format': '0.00', 'align': 'center'})
+		cell_format_number = wb.add_format({'align': 'center'})
 		cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
+		# cell_format_callnumber = wb.add_format({'font_name': 'Courier New'})
 
 		# debug
 		# use these if we want to get additional holds info
 		# self.ws_bib_level_all = self.wb.add_worksheet("bib_level_all")
 		# self.ws_vol_level_all = self.wb.add_worksheet("vol_level_all")
 
-		ws_bib_level.set_row(0, None, cell_format_bold)
-		ws_vol_level.set_row(0, None, cell_format_bold)
+		ws_bib_level.set_row(0, 25, cell_format_bold_center)
+		# ws_vol_level.set_row(0, None, cell_format_bold)
+		
 		# ws_bib_level_all.set_row(0, None, cell_format_bold)
 		# ws_vol_level_all.set_row(0, None, cell_format_bold)
 
@@ -221,73 +223,65 @@ class App:
 
 		ws_bib_level.set_column('F:F', 25) # "call_number"
 
-		ws_bib_level.set_column('G:G', 14) # "active_holds"
+		ws_bib_level.set_column('G:G', 12) # "volume"
 
-		ws_bib_level.set_column('H:H', 14) # "active_copies"
+		ws_bib_level.set_column('H:H', 14, cell_format_number) # "active_holds"
 
-		ws_bib_level.set_column('I:I', 14) # "copies_on_order"
+		ws_bib_level.set_column('I:I', 14, cell_format_number) # "active_copies"
 
-		ws_bib_level.set_column('J:J', 14, cell_format_decimal) # "holds_to_copies"
+		ws_bib_level.set_column('J:J', 14, cell_format_number) # "copies_on_order"
+
+		ws_bib_level.set_column('K:K', 14, cell_format_decimal) # "holds_to_copies"
 
 
-		ws_vol_level.set_column('A:A', 10) # bib_num
-		# ws_vol_level_all.set_column('A:A', 10)
+		# ws_vol_level.set_column('A:A', 10) # bib_num
+		
+		# ws_vol_level.set_column('B:B', 12) # vol
+		
+		# ws_vol_level.set_column('C:C', 8) # pub_year
 
-		ws_vol_level.set_column('B:B', 12) # vol
-		# ws_vol_level_all.set_column('B:B', 10)
+		# ws_vol_level.set_column('D:D', 11, cell_format_date) # cat_date
 
-		ws_vol_level.set_column('C:C', 8) # pub_year
-		# ws_vol_level_all.set_column('C:C', 14)
+		# ws_vol_level.set_column('E:E', 10) # media_type
 
-		ws_vol_level.set_column('D:D', 11, cell_format_date) # cat_date
-		# ws_vol_level_all.set_column('D:D', 12)
+		# ws_vol_level.set_column('F:F', 30) # title
 
-		ws_vol_level.set_column('E:E', 10) # media_type
-		# ws_vol_level_all.set_column('E:E', 12)
+		# ws_vol_level.set_column('G:G', 25) # call_number
 
-		ws_vol_level.set_column('F:F', 30) # title
-		# ws_vol_level_all.set_column('F:F', 14)
+		# ws_vol_level.set_column('H:H', 14) # active_holds
 
-		ws_vol_level.set_column('G:G', 25) # call_number
-		# ws_vol_level_all.set_column('G:G', 14, cell_format_decimal)
+		# ws_vol_level.set_column('I:I', 14) # active_copies
 
-		ws_vol_level.set_column('H:H', 14) # active_holds
+		# ws_vol_level.set_column('J:J', 14) # copies_on_order
 
-		ws_vol_level.set_column('I:I', 14) # active_copies
+		# ws_vol_level.set_column('K:K', 14, cell_format_decimal) # holds_to_copies
 
-		ws_vol_level.set_column('J:J', 14) # copies_on_order
-
-		ws_vol_level.set_column('K:K', 14, cell_format_decimal) # holds_to_copies
-
-		# ws_vol_level_all.set_column('H:H', 10)
 
 		ws_bib_level.freeze_panes(1, 0)
-		ws_vol_level.freeze_panes(1, 0)
+		# ws_vol_level.freeze_panes(1, 0)
+
 		# ws_bib_level_all.freeze_panes(1, 0)
 		# ws_vol_level_all.freeze_panes(1, 0)
 
-		"""
-		bib_level
-		"""
-		#~ generate output for the bib_records matching our criteria
 
 		#~ set the column names for the spreadsheet
 		ws_bib_level.write_row(0, 0,
 			(
-				"bib_num",
-				"pub_year",
-				"cat_date",
-				"media_type",
+				"bib number",
+				"year\npublished",
+				"date\ncataloged",
+				"media\ntype(s)",
 				"title",
-				"call_number",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies"
+				"call number",
+				"volume",
+				"active holds",
+				"active copies",
+				"copies on order",
+				"ratio"
 		))
 
 		row_counter=1
-		for row in self.gen_sierra_data(self.bib_output_sql):
+		for row in self.gen_sierra_data(self.system_wide_output_sql):
 			#~ debug
 			#~ print(row_counter, end=": ")
 			#~ print(row)
@@ -303,75 +297,14 @@ class App:
 					row['media_type'],
 					row['title'],
 					row['call_number'],
-					row['count_active_holds'],
-					# row['total_count_copies'],
-					row['count_active_copies'],
-					row['count_copies_on_order'],
-					float(format(row['ratio_holds_to_copies'], '.2f'))
-			))
-			row_counter+=1
-
-		"""
-		/bib_level
-		"""
-
-		"""
-		vol_level
-		"""
-		#~ generate output for the vol_records matching our criteria
-
-		#~ set the column names for the spreadsheet
-		ws_vol_level.write_row(0, 0,
-			(
-				# "bib_num",
-				# # "vol_num",
-				# "vol",
-				# "active_holds",
-				# "active_copies",
-				# "copies_on_order",
-				# "holds_to_copies",
-				# "bcode2"
-
-				"bib_num",
-				"vol",
-				"pub_year",
-				"cat_date",
-				"media_type",
-				"title",
-				"call_number",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies"
-
-		))
-
-		row_counter=1
-		for row in self.gen_sierra_data(self.vol_output_sql):
-			#~ debug
-			#~ print(row_counter, end=": ")
-			#~ print(row)
-
-			ws_vol_level.write_row(row_counter, 0,
-				(
-					row['bib_num'],
 					row['vol'],
-					row['pub_year'],
-					row['cat_date'],
-					row['media_type'],
-					row['title'],
-					row['call_number'],
 					row['count_active_holds'],
-					# row['total_count_copies'],
 					row['count_active_copies'],
 					row['count_copies_on_order'],
 					float(format(row['ratio_holds_to_copies'], '.2f'))
 			))
 			row_counter+=1
 
-		"""
-		/vol_level
-		"""
 
 		# debug
 		# add additional blocks like the one above to output to ws_bib_level_all
@@ -387,7 +320,7 @@ class App:
 	  ws_90_day = wb.add_worksheet("90_day_holds")
 
 	  cell_format_bold = wb.add_format({'bold': True})
-	  cell_format_decimal = wb.add_format({'num_format': '0.00'})
+	  #cell_format_decimal = wb.add_format({'num_format': '0.00'})
 	  cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
 
 	  ws_90_day.set_row(0, None, cell_format_bold)
