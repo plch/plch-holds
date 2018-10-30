@@ -23,14 +23,14 @@ class App:
 		#~ the remote database connection
 		self.pgsql_conn = None
 
-		#~ here are the queries we're using for this process
-		#~ these files can be found in the same base project folder
-
+		# here are the queries we're using for this process
+		# these files can be found in the same base project folder
+		#
 		# overall query that creates temp tables for eventual output
 		self.temp_tables_sql = 'base_holds_query_temp_tables.sql'
 
 		# 1) System-wide holds
-		self.system_wide_ouptput_sql = 'system_wide_output.sql'
+		self.system_wide_output_sql = 'system_wide_output.sql'
 
 		# 2) 90-day holds
 		self.ninety_day_output_sql = 'ninety_day_output.sql'
@@ -185,6 +185,7 @@ class App:
 	def create_system_wide_wb(self):
 
 		wb = xlsxwriter.Workbook(self.system_wide_file_wb)
+    
 		ws_bib_level = wb.add_worksheet(
 			date.today().strftime("%Y-%m-%d")
 		)
@@ -210,6 +211,7 @@ class App:
 
 		ws_bib_level.set_column('F:F', 25) # "call_number"
 
+
 		ws_bib_level.set_column('G:G', 12) # "vol"
 
 		ws_bib_level.set_column('H:H', 14, cell_format_number) # "active_holds"
@@ -222,10 +224,6 @@ class App:
 
 		ws_bib_level.freeze_panes(1, 0)
 
-		"""
-		bib_level
-		"""
-		#~ generate output for the bib_records matching our criteria
 
 		#~ set the column names for the spreadsheet
 		ws_bib_level.write_row(0, 0,
@@ -244,7 +242,8 @@ class App:
 		))
 
 		row_counter=1
-		for row in self.gen_sierra_data(self.system_wide_ouptput_sql):
+
+		for row in self.gen_sierra_data(self.system_wide_output_sql):
 			#~ debug
 			#~ print(row_counter, end=": ")
 			#~ print(row)
@@ -268,6 +267,7 @@ class App:
 			))
 			row_counter+=1
 
+
 		"""
 		/bib_level
 		"""
@@ -286,7 +286,7 @@ class App:
 	  ws_90_day = wb.add_worksheet("90_day_holds")
 
 	  cell_format_bold = wb.add_format({'bold': True})
-	  cell_format_decimal = wb.add_format({'num_format': '0.00'})
+	  #cell_format_decimal = wb.add_format({'num_format': '0.00'})
 	  cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
 
 	  ws_90_day.set_row(0, None, cell_format_bold)
@@ -363,14 +363,12 @@ class App:
 	  wb.close()
 
 
-
 if __name__ == "__main__":
 	start_time = datetime.now()
 	print('starting import at: \t\t{}'.format(start_time))
 
 	app = App()
 
-	# for email ...
 	import smtplib
 	from email.mime.text import MIMEText
 	from email.mime.application import MIMEApplication
@@ -417,4 +415,3 @@ if __name__ == "__main__":
 	end_time = datetime.now()
 	print('finished import at: \t\t{}'.format(end_time))
 	print('total import time: \t\t{}'.format(end_time - start_time))
-	
