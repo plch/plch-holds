@@ -30,8 +30,7 @@ class App:
 		self.temp_tables_sql = 'base_holds_query_temp_tables.sql'
 
 		# 1) System-wide holds
-		self.bib_output_sql = 'base_holds_query-bib_output.sql'
-		self.vol_output_sql = 'base_holds_query-vol_output.sql'
+		self.system_wide_ouptput_sql = 'system_wide_output.sql'
 
 		# 2) 90-day holds
 		self.ninety_day_output_sql = 'ninety_day_output.sql'
@@ -47,7 +46,7 @@ class App:
 		if not os.path.exists(self.output_dir):
 			os.makedirs(self.output_dir)
 
-		self.test_sql = 'test.sql'
+		self.system_wide_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
 
 		#~ open the config file, and parse the options into local vars
 		config = configparser.ConfigParser()
@@ -185,86 +184,43 @@ class App:
 	# create the workbook for the system wide holds
 	def create_system_wide_wb(self):
 
-		system_wide_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-system_wide_holds.xlsx")
-		wb = xlsxwriter.Workbook(system_wide_file_wb)
-		ws_bib_level = wb.add_worksheet("bib_level")
-		ws_vol_level = wb.add_worksheet("vol_level")
+		wb = xlsxwriter.Workbook(self.system_wide_file_wb)
+		ws_bib_level = wb.add_worksheet(
+			date.today().strftime("%Y-%m-%d")
+		)
 
-		cell_format_bold = wb.add_format({'bold': True})
-		cell_format_decimal = wb.add_format({'num_format': '0.00'})
+		cell_format_bold_center = wb.add_format({'bold': True, 'align': 'center'})
+		cell_format_decimal = wb.add_format({'num_format': '0.00', 'align': 'center'})
+		cell_format_number = wb.add_format({'align': 'center'})
 		cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
+		# cell_format_callnumber = wb.add_format({'font_name': 'Courier New'})
 
-		# debug
-		# use these if we want to get additional holds info
-		# self.ws_bib_level_all = self.wb.add_worksheet("bib_level_all")
-		# self.ws_vol_level_all = self.wb.add_worksheet("vol_level_all")
-
-		ws_bib_level.set_row(0, None, cell_format_bold)
-		ws_vol_level.set_row(0, None, cell_format_bold)
-		# ws_bib_level_all.set_row(0, None, cell_format_bold)
-		# ws_vol_level_all.set_row(0, None, cell_format_bold)
+		ws_bib_level.set_row(0, 25, cell_format_bold_center)
 
 		# set bib_level worksheet columns
 		ws_bib_level.set_column('A:A', 10) # "bib_num"
-		# ws_bib_level_all.set_column('A:A', 10)
 
 		ws_bib_level.set_column('B:B', 8) # "pub_year"
-		# ws_bib_level_all.set_column('B:B', 12)
 
 		ws_bib_level.set_column('C:C', 11, cell_format_date) # "cat_date"
-		# self.ws_bib_level_all.set_column('C:C', 12)
 
 		ws_bib_level.set_column('D:D', 10) # "media_type"
-		# ws_bib_level_all.set_column('D:D', 14)
 
 		ws_bib_level.set_column('E:E', 30) # "title"
 
 		ws_bib_level.set_column('F:F', 25) # "call_number"
 
-		ws_bib_level.set_column('G:G', 14) # "active_holds"
+		ws_bib_level.set_column('G:G', 12) # "vol"
 
-		ws_bib_level.set_column('H:H', 14) # "active_copies"
+		ws_bib_level.set_column('H:H', 14, cell_format_number) # "active_holds"
 
-		ws_bib_level.set_column('I:I', 14) # "copies_on_order"
+		ws_bib_level.set_column('I:I', 14, cell_format_number) # "active_copies"
 
-		ws_bib_level.set_column('J:J', 14, cell_format_decimal) # "holds_to_copies"
+		ws_bib_level.set_column('J:J', 14, cell_format_number) # "copies_on_order"
 
-
-		ws_vol_level.set_column('A:A', 10) # bib_num
-		# ws_vol_level_all.set_column('A:A', 10)
-
-		ws_vol_level.set_column('B:B', 12) # vol
-		# ws_vol_level_all.set_column('B:B', 10)
-
-		ws_vol_level.set_column('C:C', 8) # pub_year
-		# ws_vol_level_all.set_column('C:C', 14)
-
-		ws_vol_level.set_column('D:D', 11, cell_format_date) # cat_date
-		# ws_vol_level_all.set_column('D:D', 12)
-
-		ws_vol_level.set_column('E:E', 10) # media_type
-		# ws_vol_level_all.set_column('E:E', 12)
-
-		ws_vol_level.set_column('F:F', 30) # title
-		# ws_vol_level_all.set_column('F:F', 14)
-
-		ws_vol_level.set_column('G:G', 25) # call_number
-		# ws_vol_level_all.set_column('G:G', 14, cell_format_decimal)
-
-		ws_vol_level.set_column('H:H', 14) # active_holds
-
-		ws_vol_level.set_column('I:I', 14) # active_copies
-
-		ws_vol_level.set_column('J:J', 14) # copies_on_order
-
-		ws_vol_level.set_column('K:K', 14, cell_format_decimal) # holds_to_copies
-
-		# ws_vol_level_all.set_column('H:H', 10)
+		ws_bib_level.set_column('K:K', 14, cell_format_decimal) # "holds_to_copies"
 
 		ws_bib_level.freeze_panes(1, 0)
-		ws_vol_level.freeze_panes(1, 0)
-		# ws_bib_level_all.freeze_panes(1, 0)
-		# ws_vol_level_all.freeze_panes(1, 0)
 
 		"""
 		bib_level
@@ -274,20 +230,21 @@ class App:
 		#~ set the column names for the spreadsheet
 		ws_bib_level.write_row(0, 0,
 			(
-				"bib_num",
-				"pub_year",
-				"cat_date",
-				"media_type",
+				"bib number",
+				"year\npublished",
+				"date\ncataloged",
+				"media\ntype(s)",
 				"title",
-				"call_number",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies"
+				"call number",
+				"volume",
+				"active holds",
+				"active copies",
+				"copies on order",
+				"ratio"
 		))
 
 		row_counter=1
-		for row in self.gen_sierra_data(self.bib_output_sql):
+		for row in self.gen_sierra_data(self.system_wide_ouptput_sql):
 			#~ debug
 			#~ print(row_counter, end=": ")
 			#~ print(row)
@@ -303,8 +260,8 @@ class App:
 					row['media_type'],
 					row['title'],
 					row['call_number'],
+					row['vol'],
 					row['count_active_holds'],
-					# row['total_count_copies'],
 					row['count_active_copies'],
 					row['count_copies_on_order'],
 					float(format(row['ratio_holds_to_copies'], '.2f'))
@@ -313,64 +270,6 @@ class App:
 
 		"""
 		/bib_level
-		"""
-
-		"""
-		vol_level
-		"""
-		#~ generate output for the vol_records matching our criteria
-
-		#~ set the column names for the spreadsheet
-		ws_vol_level.write_row(0, 0,
-			(
-				# "bib_num",
-				# # "vol_num",
-				# "vol",
-				# "active_holds",
-				# "active_copies",
-				# "copies_on_order",
-				# "holds_to_copies",
-				# "bcode2"
-
-				"bib_num",
-				"vol",
-				"pub_year",
-				"cat_date",
-				"media_type",
-				"title",
-				"call_number",
-				"active_holds",
-				"active_copies",
-				"copies_on_order",
-				"holds_to_copies"
-
-		))
-
-		row_counter=1
-		for row in self.gen_sierra_data(self.vol_output_sql):
-			#~ debug
-			#~ print(row_counter, end=": ")
-			#~ print(row)
-
-			ws_vol_level.write_row(row_counter, 0,
-				(
-					row['bib_num'],
-					row['vol'],
-					row['pub_year'],
-					row['cat_date'],
-					row['media_type'],
-					row['title'],
-					row['call_number'],
-					row['count_active_holds'],
-					# row['total_count_copies'],
-					row['count_active_copies'],
-					row['count_copies_on_order'],
-					float(format(row['ratio_holds_to_copies'], '.2f'))
-			))
-			row_counter+=1
-
-		"""
-		/vol_level
 		"""
 
 		# debug
@@ -465,9 +364,57 @@ class App:
 
 
 
-start_time = datetime.now()
-print('starting import at: \t\t{}'.format(start_time))
-app = App()
-end_time = datetime.now()
-print('finished import at: \t\t{}'.format(end_time))
-print('total import time: \t\t{}'.format(end_time - start_time))
+if __name__ == "__main__":
+	start_time = datetime.now()
+	print('starting import at: \t\t{}'.format(start_time))
+
+	app = App()
+
+	# for email ...
+	import smtplib
+	from email.mime.text import MIMEText
+	from email.mime.application import MIMEApplication
+	from email.mime.multipart import MIMEMultipart
+	from os.path import basename
+	config = configparser.ConfigParser()
+	config.read('config.ini')
+
+	msg = MIMEMultipart()
+	# msg = MIMEText('System-Wide Holds Report: see attached')
+	msg['Subject'] = 'System Wide Holds Report'
+	msg['From'] = config['email']['email_from']
+	msg['To'] = config['email']['email_to']
+	msg.attach(MIMEText('System-Wide Holds Report: see attached'))
+
+	# pdb.set_trace()
+	file_name = app.system_wide_file_wb
+
+	with open(file_name, 'rb') as open_file:
+		part = MIMEApplication(
+			open_file.read(),
+			Name=basename(file_name)
+		)
+	part['Content-Disposition'] = 'attachment; filename="{}"'.format(basename(file_name))
+	msg.attach(part)
+
+	mailserver = smtplib.SMTP(config['email']['smtp_host'], 587)
+	# identify ourselves to smtp client
+	mailserver.ehlo()
+	# secure our email with tls encryption
+	mailserver.starttls()
+	# re-identify ourselves as an encrypted connection
+	mailserver.ehlo()
+	mailserver.login(config['email']['smtp_username'], config['email']['smtp_password'])
+	mailserver.sendmail(config['email']['email_from'],
+		# sendmail expects recipients as a list
+		[email.strip(' ') for email in config['email']['email_to'].split(',')],
+		msg.as_string()
+	)
+
+	mailserver.quit()
+	mailserver = None
+
+	end_time = datetime.now()
+	print('finished import at: \t\t{}'.format(end_time))
+	print('total import time: \t\t{}'.format(end_time - start_time))
+	
