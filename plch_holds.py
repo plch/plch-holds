@@ -211,7 +211,6 @@ class App:
 
 		ws_bib_level.set_column('F:F', 25) # "call_number"
 
-
 		ws_bib_level.set_column('G:G', 12) # "vol"
 
 		ws_bib_level.set_column('H:H', 14, cell_format_number) # "active_holds"
@@ -280,53 +279,56 @@ class App:
 
 
 	def create_90_day_wb(self):
-
+		
 	  ninety_day_file_wb = self.output_dir + date.today().strftime("/%Y-%m-%d-90_day_holds.xlsx")
 	  wb = xlsxwriter.Workbook(ninety_day_file_wb)
 	  ws_90_day = wb.add_worksheet("90_day_holds")
 
-	  cell_format_bold = wb.add_format({'bold': True})
-	  #cell_format_decimal = wb.add_format({'num_format': '0.00'})
+	  cell_format_bold_center = wb.add_format({'bold': True, 'align': 'center'})
+	  cell_format_number = wb.add_format({'align': 'center'})
 	  cell_format_date = wb.add_format({'num_format': 'yyyy-mm-dd'})
 
-	  ws_90_day.set_row(0, None, cell_format_bold)
-
+	  ws_90_day.set_row(0, 25, cell_format_bold_center)
+	  
 	  # set worksheet columns
 	  ws_90_day.set_column('A:A', 10) # "bib_num"
 
-	  ws_90_day.set_column('B:B', 8) # "vol"
+	  ws_90_day.set_column('B:B', 10) # "pub_year"
 
-	  ws_90_day.set_column('C:C', 10) # "pub_year"
+	  ws_90_day.set_column('C:C', 11, cell_format_date) # "cat_date"
 
-	  ws_90_day.set_column('D:D', 11, cell_format_date) # "cat_date"
+	  ws_90_day.set_column('D:D', 10) # "media_type"
 
-	  ws_90_day.set_column('E:E', 10) # "media_type"
+	  ws_90_day.set_column('E:E', 25) # "call_number"
 
-	  ws_90_day.set_column('F:F', 30) # "title"
+	  ws_90_day.set_column('F:F', 12) # "vol"
 
-	  ws_90_day.set_column('G:G', 25) # "call_number"
+	  ws_90_day.set_column('G:G', 30) # "author"
 
-	  ws_90_day.set_column('H:H', 14) # "over_90_not_os"
+	  ws_90_day.set_column('H:H', 30) # "title"
 
-	  ws_90_day.set_column('I:I', 14) # "over_90_os"
+	  ws_90_day.set_column('I:I', 14, cell_format_number) # "over_90_not_os"
 
-	  ws_90_day.set_column('J:J', 14) # "count_active_holds"
+	  ws_90_day.set_column('J:J', 14, cell_format_number) # "over_90_os"
 
-	  ws_90_day.set_column('K:K', 14) # "count_active_copies"
+	  ws_90_day.set_column('K:K', 14, cell_format_number) # "count_active_holds"
 
-	  ws_90_day.set_column('L:L', 14) # "count_copies_on_order"
+	  ws_90_day.set_column('L:L', 14, cell_format_number) # "count_active_copies"
+
+	  ws_90_day.set_column('M:M', 14, cell_format_number) # "count_copies_on_order"
 
 	  ws_90_day.freeze_panes(1, 0)
 
 	  ws_90_day.write_row(0, 0,
 	    (
-	      "bib_num",
-	      "vol",
-	      "pub_year",
-	      "cat_date",
-	      "media_type",
-	      "title",
-	      "call_number",
+	      "bib number",
+	      "year\npublished",
+	      "date\ncataloged",
+	      "media\ntype(s)",
+	      "call number",
+		  "volume",
+		  "author",
+		  "title",
 	      "over_90_not_os",
 	      "over_90_os",
 	      "active_holds",
@@ -346,12 +348,13 @@ class App:
 	    ws_90_day.write_row(row_counter, 0,
 	      (
 	        row['bib_num'],
-			row['vol'],
 	        row['pub_year'],
 	        row['cat_date'],
 	        row['media_type'],
-	        row['title'],
 	        row['call_number'],
+			row['vol'],
+			row['author'],
+			row['title'],
 	        row['over_90_not_os'],
 	        row['over_90_os'],
 	        row['count_active_holds'],

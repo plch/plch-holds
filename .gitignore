@@ -10,3 +10,4 @@ old_work/
 *.xls
 output/
 .vscode
+log.txt
