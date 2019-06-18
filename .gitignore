@@ -1,5 +1,6 @@
 env/
 venv/
+log.txt
 *.ini
 *.db
 *.db-journal
@@ -10,3 +11,4 @@ old_work/
 *.xls
 output/
 .vscode
+
