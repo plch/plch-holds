@@ -1,0 +1,66 @@
+"""
+This is the logic for sorting into the different main agency sheets for the
+Holds No Copies Excel workbook
+
+note: 
+    1. the first_item_itype is taken from the first listed item attached to the bib (if
+    available)
+    
+    2. the call number is first attempted to be retrieved from the first listed
+    item attached (so as to look at the normalized version); if there isn't a
+    call number in that location, it is pulled from the bib record.
+"""
+
+OUT:
+    mat_type_code: l(large print); first_item_itype: 20;
+    mat_type_code: q(playaway); first_item_itype: 93;
+
+POP:
+    bib_location_starts_with: 1p, 1f;
+    OR mat_type_code: a(book); first_item_itype: 0; call_number: ~* '^.*fiction.*' (has fiction in the call number);
+    OR mat_type_code: 5(book on cassette);
+    OR mat_type_code: i(book on cd); first_item_itype: 70;
+    OR mat_type_code: g(dvd); first_item_itype: 100,101;
+    OR mat_type_code: 7(music cassette)
+    OR mat_type_code: j(music cd); first_item_itype: 77;
+    OR mat_type_code: q(playaway); first_item_itype: 90;
+    OR mat_type_code: h(vhs);
+    OR mat_type_code: m(cd-rom); call_number: call_number !~* '^.*easy.*' (does not have easy in the call number);
+
+IRF:
+    bib_location_starts_with: 2e, 2g, 2r, 2s, 2n, 3a, 3h, 3l, 3r;
+    OR first_item_itype: 0; call_number: !~* '^.*fiction.*' (does not have fiction in the call number);
+    OR mat_type_code: s(magazine); first_item_itype: 30;
+    OR mat_type_code: c(music score); first_item_itype: 157;
+    OR mat_type_code: a(book); first_item_itype: 10;
+
+TEE:
+    bib_location_starts_with: 2t, 2k;
+    OR mat_type_code: i(book on cd); first_item_itype: 72;
+    OR mat_type_code: g(dvd); first_item_itype: 100, 101;
+    OR mat_type_code: l(large print); first_item_itype: 24;
+    OR mat_type_code: s(magazine); first_item_itype: 32;
+    OR mat_type_code: q(playaway); first_item_itype: 92;
+
+CLC:
+    bib_location_starts_with: 1c, 1l;
+    OR first_item_itype: 2;
+    OR mat_type_code: i(book on cd); first_item_itype: 71;
+    OR mat_type_code: l(large print); first_item_itype: 22;
+    OR mat_type_code: s(magazine); first_item_itype: 31;
+    OR mat_type_code: j(music cd); first_item_itype: 78;
+    OR mat_type_code: c(music score); first_item_itype: 159;
+    OR mat_type_code: q(playaway); first_item_itype: 91;
+    OR mat_type_code: m(cd-rom); call_number: ~* '^.*easy.*' (has "easy" in the call number);
+
+GEN:
+    bib_location_starts_with: 3c, 3g, 3e;
+    OR mat_type_code: a(book); first_item_itype: 46;
+
+MAG:
+    bib_location_starts_with: 2m;
+
+
+note: may need this in the future..
+string doesn't contain "fiction"
+^((?!fiction).)*$

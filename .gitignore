@@ -11,4 +11,6 @@ old_work/
 *.xls
 output/
 .vscode
-
+*.doc
+*.docx
+testing/*

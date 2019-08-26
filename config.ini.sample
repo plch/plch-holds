@@ -1,13 +1,50 @@
 [db]
-	connection_string = dbname='iii' user='USERNAME_HERE' host='SIERRA-DB.HOSTNAME.EDU' password='PASSWORD_HERE' port=1032 sslmode='require'
+	connection_string = dbname='iii' user='sqlholds01' host='sierra-db.plch.net' password='PASSWORD_HERE' port=1032 sslmode='require'
 	itersize = 5000
 
 [local_db]
 	connection_string = plch_holds.db
 
 [email]
-    smtp_host = smtp.mandrillapp.com
-    smtp_username = plchilsadmin@cincinnatilibrary.org
-    smtp_password = SET_PASSWORD_OR_API_KEY_HERE
-    email_from = email.from@name.org
-    email_to = email1@name.org, email2@name.org, email3@name.org
+	smtp_host = smtp.mandrillapp.com
+	smtp_username = plchilsadmin@cincinnatilibrary.org
+	smtp_password = PASSWORD_HERE
+
+[email_testing]
+	email_from = email@cincinnatilibrary.org
+	email_to = email@cincinnatilibrary.org,
+		other_email@gmail.com
+
+[email_system_wide]
+	email_subject = System Wide Hold Report
+	email_from = email@cincinnatilibrary.org
+	email_to = email@cincinnatilibrary.org,
+		other_email@gmail.com
+
+[email_ninety_day]
+	email_subject = 90-day Unfilled Holds Report
+	email_from = email@cincinnatilibrary.org
+	email_to = email@cincinnatilibrary.org,
+		other_email@gmail.com
+	email_body = 90-day Unfilled Holds Report: see attached
+
+    Instructions:
+    The 90-day holds report includes all holds in which customers have been waiting over 90 days for the hold.
+    
+    The list has two columns that divides holds into Outreach Patron holds (over_90_os) and all other holds (over_90_not_os). VIC staff is responsible for the all other holds column, while OUT staff is responsible for the Outreach patron column. Other columns include how many copies we have that could fill holds (active_copies) and how many copies are on order (copies_on_order).
+    
+    Staff should look to determine if there is a problem with the title (long overdue item/item sitting on shelf/etc) and follow up accordingly. For the non-Outreach holds, staff can look to see if the title is available in SearchOhio/Ohiolink and suggest to the customers they could place a hold that way. On occasion, staff will see Hot Author/Hot Tix titles because holds are placed 3-4 months in advance. For the most part, those titles can be ignored.
+    
+    For additional questions, or help please email: ilshelp@cincinnatilibrary.org
+
+[email_holds_no_copies]
+	email_subject = Holds No Copies Report
+	email_from = email@cincinnatilibrary.org
+	email_to = email@cincinnatilibrary.org,
+		other_email@gmail.com
+	email_body = Holds No Copies Report: see attached
+
+[arg_list]
+	; run and all holds -- no email
+	runall
+	; 

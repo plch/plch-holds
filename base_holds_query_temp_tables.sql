@@ -175,9 +175,9 @@ COALESCE (
 	)
 	-- item is in transit, but not long in transit
 	-- OR (
--- 		i.item_status_code IN ('t')
--- 		AND COALESCE ( age(r.record_last_updated_gmt) < INTERVAL '60 days', true ) -- item in transit < 60 days old
--- 	)
+	-- i.item_status_code IN ('t')
+	-- AND COALESCE ( age(r.record_last_updated_gmt) < INTERVAL '60 days', true ) -- item in transit < 60 days old
+	-- )
 ), 0) as count_active_copies,
 
 -- count the number of copies on order ...
@@ -472,10 +472,10 @@ temp_plch_holds as t
 
 WHERE t.record_id IN (
 	SELECT
-	swt.record_id
+	record_id
 
 	FROM
-	temp_system_wide_holds_bibs as swt
+	temp_system_wide_holds_bibs
 )
 ;
 ---
@@ -594,17 +594,20 @@ temp_plch_holds as t
 
 WHERE t.record_id IN (
 	SELECT
-	swt.record_id
+	record_id
 
 	FROM
-	temp_system_wide_holds_volumes as swt
+	temp_system_wide_holds_volumes
 )
 ;
 ---
 
 
+--- --- 
+--- ---
 --- 90 Days Holds related queries
-
+--- ---
+--- ---
 
 -- to get the _real_ date of the hold (with delay days) do something like this ...
 -- EXAMPLE :
@@ -803,6 +806,94 @@ ON
 ---
 
 
+-- remove the 90 day holds from the main table 
+DELETE FROM
+temp_plch_holds AS h
+
+WHERE h.record_id IN (
+
+	SELECT
+	record_id
+	FROM
+	temp_90_day_pre_output
+);
+
+
+
+--- ---
+--- ---
+--- Holds no active copies:
+--- ---
+--- ---
+
+-- we've been whittling down our temp_plch_holds by removing the holds as we fill our reports ...
+-- start there:
+-- SELECT * FROM temp_plch_holds limit 100
+
+-- bib level holds meeting our criteria:
+DROP TABLE IF EXISTS temp_bib_level_holds_no_copies;
+CREATE TEMP TABLE temp_bib_level_holds_no_copies AS
+WITH temp_plch_holds_cte AS (
+	SELECT DISTINCT
+	t.record_id
+	FROM
+	temp_plch_holds as t
+	WHERE
+	t.record_type_code = 'b'
+)
+
+SELECT
+c.*
+
+FROM
+temp_plch_holds_cte as t
+
+JOIN
+temp_bib_level_holds_counts as c
+ON
+  c.record_id = t.record_id
+
+WHERE
+c.count_active_copies = 0
+AND c.count_copies_on_order = 0
+;
+
+
+-- vol level holds meeting our criteria:
+DROP TABLE IF EXISTS temp_volume_level_holds_no_copies;
+CREATE TEMP TABLE temp_volume_level_holds_no_copies AS
+WITH temp_plch_holds_cte AS (
+	SELECT DISTINCT
+	t.record_id
+	FROM
+	temp_plch_holds as t
+	WHERE
+	t.record_type_code = 'j'
+)
+
+SELECT
+c.*
+
+FROM
+temp_plch_holds_cte as t
+
+JOIN
+temp_volume_level_holds_counts as c
+ON
+  c.record_id = t.record_id
+
+WHERE
+c.count_active_copies = 0
+AND c.count_copies_on_order = 0
+;
+
+-- SELECT * FROM temp_bib_level_holds_no_copies;
+
+
+-- look at what's going on with the count_copies_on_order ...it might be wrong?
+-- bib_record_id;record_id
+-- 420910240967;455268032430;j;g;10;0;0
+
 ---
 -- CREATING TEMP TABLE FOR THE MATERIAL TYPE CODES IN OUTPUT
 DROP TABLE IF EXISTS temp_map_material_type
@@ -824,6 +915,201 @@ ON
 ---
 
 
+--- 
+---
+--- holds no active copies - pre output
+---
+---
+
+DROP TABLE IF EXISTS temp_holds_no_copies_pre_output;
+CREATE TEMP TABLE temp_holds_no_copies_pre_output AS
+WITH temp_holds_no_copies AS (
+	SELECT
+	*
+	FROM
+	temp_bib_level_holds_no_copies
+
+	UNION
+
+	SELECT
+	*
+	FROM
+	temp_volume_level_holds_no_copies
+)
+
+SELECT
+r.record_type_code || r.record_num || 'a' as bib_record_num,
+-- r.id,
+h.bib_record_id,
+p.publish_year,
+b.cataloging_date_gmt::date as cataloging_date,
+
+(
+	SELECT
+	m.name
+	FROM
+	temp_map_material_type as m
+	WHERE
+	m.code = h.bcode2
+) as mat_type,
+
+h.bcode2 as mat_type_code,
+
+
+-- r.creation_date_gmt::date as creation_date,
+p.best_title,
+p.best_title_norm,
+
+-- if no item call numbers, get it from the bib
+COALESCE(
+	-- call number from item...
+	(
+		SELECT
+		-- string_agg(DISTINCT i.call_number_norm, ',')
+		
+		i.call_number_norm
+		FROM
+		sierra_view.bib_record_item_record_link as l
+		JOIN
+		sierra_view.item_record_property as i
+		ON
+		  i.item_record_id = l.item_record_id
+		WHERE
+		l.bib_record_id = h.bib_record_id
+		ORDER BY
+		l.items_display_order ASC
+		LIMIT 1
+	),
+	-- call number from bib
+	(
+		SELECT
+		-- get the call number strip the subfield indicators
+		lower(
+			regexp_replace( 
+				trim(
+					v.field_content
+				),
+				'(\|[a-z]{1})', '', 'ig'
+			)
+		)
+		FROM
+		sierra_view.varfield as v
+
+		WHERE
+		v.record_id = h.bib_record_id
+		AND v.varfield_type_code = 'c'
+
+		ORDER BY
+		v.occ_num
+
+		LIMIT 1
+	)
+) as call_number,
+
+(
+	SELECT
+	v.field_content
+	FROM
+	sierra_view.varfield as v
+	WHERE
+	h.record_type_code = 'j'
+	AND v.record_id = h.record_id
+	AND v.varfield_type_code = 'v'
+	ORDER BY
+	v.occ_num
+	LIMIT 1
+) as volume_statement,
+
+(
+	SELECT
+	MIN(t.placed_gmt)::date
+	FROM
+	temp_plch_holds as t
+	WHERE
+	t.record_id = h.record_id
+) as oldest_hold_date,
+(
+	SELECT
+	MAX(t.placed_gmt)::date
+	FROM
+	temp_plch_holds as t
+	WHERE
+	t.record_id = h.record_id
+) as newest_hold_date,
+
+(
+	SELECT
+	string_agg(bl.location_code, ',' order by bl.display_order)
+	FROM
+	sierra_view.bib_record_location as bl
+	WHERE
+	bl.bib_record_id = h.bib_record_id
+	AND bl.location_code != 'multi'
+) as bib_locations,
+(
+	SELECT
+	string_agg( substring(bl.location_code from 1 for 2), ',' order by bl.display_order)
+	FROM
+	sierra_view.bib_record_location as bl
+	WHERE
+	bl.bib_record_id = h.bib_record_id
+	AND bl.location_code != 'multi'
+) as abbv_bib_locations,
+(
+	SELECT
+-- 	string_agg(DISTINCT i.call_number_norm, ',')
+	i.itype_code_num
+	FROM
+	sierra_view.bib_record_item_record_link as l
+	JOIN
+	sierra_view.item_record as i
+	ON
+	  i.record_id = l.item_record_id
+	WHERE
+	l.bib_record_id = h.bib_record_id
+	ORDER BY
+	l.items_display_order ASC
+	LIMIT 1
+	
+) as first_item_itype,
+(
+	-- get the longest isbn from the record
+	SELECT
+	substring(p.index_entry FROM '[0-9]+')
+	FROM
+	sierra_view.phrase_entry as p
+	WHERE
+	p.record_id = h.bib_record_id
+	AND p.index_tag = 'i'
+
+	ORDER BY
+	p.occurrence,
+	-- LENGTH(substring(p.index_entry FROM '[0-9]+')) DESC,
+	substring(p.index_entry FROM '[0-9]+') DESC
+	LIMIT 1
+) as isbn,
+h.count_active_holds,
+h.count_active_copies,
+h.count_copies_on_order
+
+FROM
+temp_holds_no_copies as h
+
+JOIN
+sierra_view.record_metadata as r
+ON
+  r.id = h.bib_record_id
+
+JOIN
+sierra_view.bib_record as b
+ON
+  b.record_id = h.bib_record_id
+
+JOIN
+sierra_view.bib_record_property as p
+ON
+  p.bib_record_id = h.bib_record_id
+;
 
 ---
 -- Additional useful queries for troubleshooting / further development
