@@ -1,5 +1,4 @@
-# PLCH Holds (version 0.2)
-
+# PLCH Holds
 The holds reports for PLCH consist of three main categories*:
 
 1. **System-wide holds**
@@ -54,5 +53,3 @@ A listing of titles that have active copies to active holds ratios that exceed g
 A listing of titles that meet or exceed a hold-placed age of 90-days or more.
 
 1. Title has at least one unfilled bib or volume level hold with an age of greater than 90 days
-
-1.
