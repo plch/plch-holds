@@ -438,7 +438,8 @@ t.count_active_copies > 0
 AND t.count_active_holds > 0
 AND (
 	(
-		t.bcode2 IN ('g')
+		-- dvd (g) and bluray (r)
+		t.bcode2 IN ('g', 'r')  
 		AND ( t.count_active_holds::float / ( t.count_active_copies + COALESCE(t.count_copies_on_order, 0) )::float
 		) > 9.0::float
 	)

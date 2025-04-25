@@ -14,3 +14,4 @@ output/
 *.doc
 *.docx
 testing/*
+config.ini*
