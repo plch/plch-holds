@@ -555,7 +555,11 @@ if __name__ == "__main__":
 		else:
 			print_arg_error()
 
-	except:
+	except Exception as e:
+		import traceback
+		print("\n--- ERROR ---")
+		traceback.print_exc()
+		print("--- END ERROR ---\n")
 		print_arg_error()
 
 	end_time = datetime.now()
